@@ -7,6 +7,10 @@ const port = process.argv[2] ? process.argv[2] : 3000
 
 app.use(express.static(publicDirectoryPath))
 
+app.get('/api/test', (req, res) => {
+	res.send({ test: true })
+})
+
 app.listen(port, () => {
-  console.log(`Server is up on port ${port}`)
+	console.log(`Server is up on port ${port}`)
 })
