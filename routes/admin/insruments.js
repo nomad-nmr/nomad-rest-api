@@ -4,12 +4,14 @@ const instrumentsController = require('../../controllers/admin/instruments')
 
 const router = express.Router()
 
-router.post('/update-instruments', instrumentsController.postUpdateInstruments)
+router.get('/', instrumentsController.getInstruments)
 
-router.get('/get-instruments', instrumentsController.getInstruments)
+router.post('/', instrumentsController.addInstrument)
 
-router.post('/delete-instrument', instrumentsController.postDeleteInstrument)
+router.put('/', instrumentsController.updateInstruments)
 
-router.post('/toggle-running', instrumentsController.postToggleRunning)
+router.delete('/:id', instrumentsController.deleteInstrument)
+
+router.patch('/toggle-available/:id', instrumentsController.toggleAvailable)
 
 module.exports = router

@@ -1,6 +1,7 @@
 const path = require('path')
 const express = require('express')
 const bodyParser = require('body-parser')
+const mongoose = require('mongoose')
 
 const app = express()
 const publicDirectoryPath = path.join(__dirname, '..', 'nmr-control-dash', 'build')
@@ -21,6 +22,16 @@ app.use((req, res, next) => {
 	res.sendFile(path.join(publicDirectoryPath, 'index.html'))
 })
 
-app.listen(port, () => {
-	console.log(`Server is up on port ${port}`)
-})
+mongoose
+	.connect('mongodb://127.0.0.1:27017/nomad', {
+		useNewUrlParser: true,
+		// useCreateIndex: true,
+		useUnifiedTopology: true,
+		useFindAndModify: false
+	})
+	.then(() => {
+		console.log('DB connected')
+		app.listen(port, () => {
+			console.log(`Server is up on port ${port}`)
+		})
+	})

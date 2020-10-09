@@ -1,32 +1,66 @@
 const Instrument = require('../../models/instrument')
 
-exports.postUpdateInstruments = (req, res) => {
-	const { key, name, model, probe, capacity, running } = req.body
-	const instrument = new Instrument(key, name, model, probe, capacity, running)
-
-	instrument.save((instruments) => {
-		res.send(instruments)
-	})
-}
-
 exports.getInstruments = (req, res) => {
-	Instrument.fetchAll((instruments) => {
-		res.send(instruments)
-	})
-}
-
-exports.postDeleteInstrument = (req, res) => {
-	Instrument.deleteInstrument(req.body.id, (updatedInstruments) => {
-		res.send(updatedInstruments)
-	})
-}
-
-exports.postToggleRunning = (req, res) => {
-	Instrument.findById(req.body.id, (instrument) => {
-		const { key, name, model, probe, capacity, running } = instrument
-		const updatedInstrument = new Instrument(key, name, model, probe, capacity, !running)
-		updatedInstrument.save((instruments) => {
-			res.send(instruments)
+	Instrument.find()
+		.then(instruments => {
+			const tableData = Instrument.getTableData(instruments)
+			res.send(tableData)
 		})
-	})
+		.catch(err => {
+			res.status(500).send(err)
+		})
+}
+
+exports.addInstrument = (req, res) => {
+	const instrument = new Instrument(req.body)
+	instrument
+		.save()
+		.then(() => {
+			Instrument.find().then(instruments => {
+				const tableData = Instrument.getTableData(instruments)
+				res.send(tableData)
+			})
+		})
+		.catch(err => {
+			res.status(500).send(err)
+		})
+}
+
+exports.updateInstruments = (req, res) => {
+	Instrument.findByIdAndUpdate(req.body._id, req.body)
+		.then(() => {
+			Instrument.find().then(instruments => {
+				const tableData = Instrument.getTableData(instruments)
+				res.send(tableData)
+			})
+		})
+		.catch(err => {
+			res.status(500).send(err)
+		})
+}
+
+exports.deleteInstrument = (req, res) => {
+	console.log(req.params.id)
+	Instrument.findByIdAndDelete(req.params.id)
+		.then(() => {
+			Instrument.find().then(instruments => {
+				const tableData = Instrument.getTableData(instruments)
+				res.send(tableData)
+			})
+		})
+		.catch(err => {
+			res.status(500).send(err)
+		})
+}
+
+exports.toggleAvailable = (req, res) => {
+	Instrument.findById(req.params.id)
+		.then(instrument => {
+			instrument.available = !instrument.available
+			return instrument.save()
+		})
+		.then(data => {
+			res.send({ _id: data._id, available: data.available })
+		})
+		.catch(err => res.status(500).send(err))
 }
