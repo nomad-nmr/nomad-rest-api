@@ -18,8 +18,9 @@ const instrumentSchema = new Schema({
 	}
 })
 
-instrumentSchema.statics.getTableData = function (data) {
-	return data.map((i, index) => {
+instrumentSchema.statics.getTableData = async function () {
+	const instrumentsData = await this.find()
+	return instrumentsData.map((i, index) => {
 		return { ...i._doc, key: index }
 	})
 }

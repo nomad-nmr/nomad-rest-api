@@ -1,9 +1,8 @@
 const Instrument = require('../../models/instrument')
 
 exports.getInstruments = (req, res) => {
-	Instrument.find()
-		.then(instruments => {
-			const tableData = Instrument.getTableData(instruments)
+	Instrument.getTableData()
+		.then(tableData => {
 			res.send(tableData)
 		})
 		.catch(err => {
@@ -15,11 +14,9 @@ exports.addInstrument = (req, res) => {
 	const instrument = new Instrument(req.body)
 	instrument
 		.save()
-		.then(() => {
-			Instrument.find().then(instruments => {
-				const tableData = Instrument.getTableData(instruments)
-				res.send(tableData)
-			})
+		.then(() => Instrument.getTableData())
+		.then(tableData => {
+			res.send(tableData)
 		})
 		.catch(err => {
 			res.status(500).send(err)
@@ -28,11 +25,9 @@ exports.addInstrument = (req, res) => {
 
 exports.updateInstruments = (req, res) => {
 	Instrument.findByIdAndUpdate(req.body._id, req.body)
-		.then(() => {
-			Instrument.find().then(instruments => {
-				const tableData = Instrument.getTableData(instruments)
-				res.send(tableData)
-			})
+		.then(() => Instrument.getTableData())
+		.then(tableData => {
+			res.send(tableData)
 		})
 		.catch(err => {
 			res.status(500).send(err)
@@ -40,13 +35,10 @@ exports.updateInstruments = (req, res) => {
 }
 
 exports.deleteInstrument = (req, res) => {
-	console.log(req.params.id)
 	Instrument.findByIdAndDelete(req.params.id)
-		.then(() => {
-			Instrument.find().then(instruments => {
-				const tableData = Instrument.getTableData(instruments)
-				res.send(tableData)
-			})
+		.then(() => Instrument.getTableData())
+		.then(tableData => {
+			res.send(tableData)
 		})
 		.catch(err => {
 			res.status(500).send(err)
