@@ -15,6 +15,20 @@ const instrumentSchema = new Schema({
 	available: {
 		type: Boolean,
 		default: false
+	},
+	statusSummary: {
+		busyUntil: {
+			type: String,
+			default: 'unknown'
+		},
+		dayExpt: {
+			type: String,
+			default: 'unknown'
+		},
+		nightExpt: {
+			type: String,
+			default: 'unknown'
+		}
 	}
 })
 

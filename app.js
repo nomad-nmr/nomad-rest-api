@@ -14,7 +14,6 @@ app.use(express.static(publicDirectoryPath))
 app.use(bodyParser.json({ strict: true, limit: '50mb' }))
 
 app.use('/tracker', trackerRoutes)
-
 app.use('/admin/instruments', instrumentsRoutes)
 
 // Redirecting any requests that don't match with above to be handled by React router
