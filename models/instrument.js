@@ -4,7 +4,8 @@ const Schema = mongoose.Schema
 const instrumentSchema = new Schema({
 	name: {
 		type: String,
-		required: true
+		required: true,
+		trim: true
 	},
 	model: String,
 	probe: String,
@@ -16,27 +17,35 @@ const instrumentSchema = new Schema({
 		type: Boolean,
 		default: false
 	},
-	statusSummary: {
-		busyUntil: {
-			type: String,
-			default: 'unknown'
+
+	status: {
+		summary: {
+			busyUntil: {
+				type: String,
+				default: 'unknown'
+			},
+			dayExpt: {
+				type: String,
+				default: 'unknown'
+			},
+			nightExpt: {
+				type: String,
+				default: 'unknown'
+			},
+
+			running: Boolean,
+			availableHolders: Number,
+			errors: Number
 		},
-		dayExpt: {
-			type: String,
-			default: 'unknown'
+		statusTable: {
+			type: Array,
+			default: []
 		},
-		nightExpt: {
-			type: String,
-			default: 'unknown'
+		historyTable: {
+			type: Array,
+			default: []
 		}
 	}
 })
-
-instrumentSchema.statics.getTableData = async function () {
-	const instrumentsData = await this.find()
-	return instrumentsData.map((i, index) => {
-		return { ...i._doc, key: index }
-	})
-}
 
 module.exports = mongoose.model('Instrument', instrumentSchema)

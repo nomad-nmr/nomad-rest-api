@@ -2,7 +2,7 @@ const Instrument = require('../../models/instrument')
 
 exports.getInstruments = async (req, res) => {
 	try {
-		const tableData = await Instrument.getTableData()
+		const tableData = await Instrument.find({}, '-status')
 		res.send(tableData)
 	} catch (err) {
 		res.status(500).send(err)
@@ -13,7 +13,7 @@ exports.addInstrument = async (req, res) => {
 	const instrument = new Instrument(req.body)
 	try {
 		await instrument.save()
-		const tableData = await Instrument.getTableData()
+		const tableData = await Instrument.find({}, '-status')
 		res.send(tableData)
 	} catch (err) {
 		res.status(500).send(err)
@@ -26,7 +26,7 @@ exports.updateInstruments = async (req, res) => {
 		if (!instrument) {
 			return res.status(404).send()
 		}
-		const tableData = await Instrument.getTableData()
+		const tableData = await Instrument.find({}, '-status')
 		res.send(tableData)
 	} catch (err) {
 		res.status(500).send(err)
@@ -39,7 +39,7 @@ exports.deleteInstrument = async (req, res) => {
 		if (!instrument) {
 			return res.status(404).send()
 		}
-		const tableData = await Instrument.getTableData()
+		const tableData = await Instrument.find({}, '-status')
 		res.send(tableData)
 	} catch (err) {
 		res.status(500).send(err)
