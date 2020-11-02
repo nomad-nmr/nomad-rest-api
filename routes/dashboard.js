@@ -8,4 +8,6 @@ router.get('/status-summary', dashControllers.getStatusSummary)
 
 router.get('/status-table/:key', dashControllers.getStatusTable)
 
+router.get('/drawer-table/:id', dashControllers.getDrawerTable)
+
 module.exports = router

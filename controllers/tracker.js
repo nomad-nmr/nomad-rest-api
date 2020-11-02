@@ -61,8 +61,9 @@ exports.updateStatus = async (req, res) => {
 		newStatusTabData.forEach(entry => usedHolders.add(entry.holder))
 		availableHolders = instrument.capacity - usedHolders.size
 
-		//Calculating error
-		const errors = newStatusTabData.filter(entry => entry.status === 'Error').length
+		// Calculating number of errors and
+		const errorCount = newStatusTabData.filter(entry => entry.status === 'Error').length
+		const pendingCount = newStatusTabData.filter(entry => entry.status === 'Available').length
 
 		const newStatusSummary = {
 			...instrument.status.summary,
@@ -71,7 +72,8 @@ exports.updateStatus = async (req, res) => {
 			nightExpt: Object.values(req.body.data[0][3])[1],
 			running,
 			availableHolders,
-			errors
+			errorCount,
+			pendingCount
 		}
 
 		await instrument.updateOne({

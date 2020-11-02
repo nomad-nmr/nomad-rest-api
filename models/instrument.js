@@ -35,7 +35,8 @@ const instrumentSchema = new Schema({
 
 			running: Boolean,
 			availableHolders: Number,
-			errors: Number
+			errorCount: Number,
+			pendingCount: Number
 		},
 		statusTable: {
 			type: Array,
