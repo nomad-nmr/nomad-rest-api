@@ -1,32 +1,61 @@
 const Instrument = require('../../models/instrument')
 
-exports.postUpdateInstruments = (req, res) => {
-	const { key, name, model, probe, capacity, running } = req.body
-	const instrument = new Instrument(key, name, model, probe, capacity, running)
-
-	instrument.save((instruments) => {
-		res.send(instruments)
-	})
+exports.getInstruments = async (req, res) => {
+	try {
+		const tableData = await Instrument.find({}, '-status')
+		res.send(tableData)
+	} catch (err) {
+		res.status(500).send(err)
+	}
 }
 
-exports.getInstruments = (req, res) => {
-	Instrument.fetchAll((instruments) => {
-		res.send(instruments)
-	})
+exports.addInstrument = async (req, res) => {
+	const instrument = new Instrument(req.body)
+	try {
+		await instrument.save()
+		const tableData = await Instrument.find({}, '-status')
+		res.send(tableData)
+	} catch (err) {
+		res.status(500).send(err)
+	}
 }
 
-exports.postDeleteInstrument = (req, res) => {
-	Instrument.deleteInstrument(req.body.id, (updatedInstruments) => {
-		res.send(updatedInstruments)
-	})
+exports.updateInstruments = async (req, res) => {
+	try {
+		const instrument = await Instrument.findByIdAndUpdate(req.body._id, req.body)
+		if (!instrument) {
+			return res.status(404).send()
+		}
+		const tableData = await Instrument.find({}, '-status')
+		res.send(tableData)
+	} catch (err) {
+		res.status(500).send(err)
+	}
 }
 
-exports.postToggleRunning = (req, res) => {
-	Instrument.findById(req.body.id, (instrument) => {
-		const { key, name, model, probe, capacity, running } = instrument
-		const updatedInstrument = new Instrument(key, name, model, probe, capacity, !running)
-		updatedInstrument.save((instruments) => {
-			res.send(instruments)
-		})
-	})
+exports.deleteInstrument = async (req, res) => {
+	try {
+		const instrument = await Instrument.findByIdAndDelete(req.params.id)
+		if (!instrument) {
+			return res.status(404).send()
+		}
+		const tableData = await Instrument.find({}, '-status')
+		res.send(tableData)
+	} catch (err) {
+		res.status(500).send(err)
+	}
+}
+
+exports.toggleAvailable = async (req, res) => {
+	try {
+		const instrument = await Instrument.findById(req.params.id)
+		if (!instrument) {
+			return res.status(404).send()
+		}
+		instrument.available = !instrument.available
+		const updatedInstrument = await instrument.save()
+		res.send({ _id: updatedInstrument._id, available: updatedInstrument.available })
+	} catch (err) {
+		res.status(500).send(err)
+	}
 }

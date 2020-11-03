@@ -1,65 +1,51 @@
-const fs = require('fs')
-const path = require('path')
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
 
-const p = path.join(path.dirname(process.mainModule.filename), 'data', 'instruments.json')
+const instrumentSchema = new Schema({
+	name: {
+		type: String,
+		required: true,
+		trim: true
+	},
+	model: String,
+	probe: String,
+	capacity: {
+		type: Number,
+		required: true
+	},
+	available: {
+		type: Boolean,
+		default: false
+	},
 
-const getInstrumentsFromFile = (cb) => {
-	fs.readFile(p, (err, fileContent) => {
-		if (err) {
-			cb([])
-		} else {
-			cb(JSON.parse(fileContent))
+	status: {
+		summary: {
+			busyUntil: {
+				type: String,
+				default: 'unknown'
+			},
+			dayExpt: {
+				type: String,
+				default: 'unknown'
+			},
+			nightExpt: {
+				type: String,
+				default: 'unknown'
+			},
+			running: Boolean,
+			availableHolders: Number,
+			errorCount: Number,
+			pendingCount: Number
+		},
+		statusTable: {
+			type: Array,
+			default: []
+		},
+		historyTable: {
+			type: Array,
+			default: []
 		}
-	})
-}
-
-module.exports = class Instrument {
-	constructor(id, name, model, probe, capacity, running) {
-		this.key = id
-		this.name = name
-		this.model = model
-		this.probe = probe
-		this.capacity = capacity
-		this.running = running ? running : false
 	}
+})
 
-	save(cb) {
-		getInstrumentsFromFile((instruments) => {
-			if (!this.key) {
-				this.key = Math.random().toString()
-				instruments.push(this)
-			} else {
-				const instrIndex = instruments.findIndex((instr) => instr.key === this.key)
-				instruments[instrIndex] = this
-			}
-			fs.writeFile(p, JSON.stringify(instruments), (err) => {
-				console.log(err)
-			})
-
-			//Callback to send updated list of instruments to re-render table on frontend
-			cb(instruments)
-		})
-	}
-
-	static fetchAll(cb) {
-		getInstrumentsFromFile(cb)
-	}
-
-	static deleteInstrument(id, cb) {
-		getInstrumentsFromFile((instruments) => {
-			const updatedInstruments = instruments.filter((inst) => inst.key !== id)
-			fs.writeFile(p, JSON.stringify(updatedInstruments), (err) => {
-				console.log(err)
-			})
-			//Callback to send updated list of instruments to re-render table on frontend
-			cb(updatedInstruments)
-		})
-	}
-
-	static findById(id, cb) {
-		getInstrumentsFromFile((instruments) => {
-			const instrument = instruments.find((instr) => instr.key === id)
-			cb(instrument)
-		})
-	}
-}
+module.exports = mongoose.model('Instrument', instrumentSchema)

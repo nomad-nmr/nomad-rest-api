@@ -1,14 +1,18 @@
 const express = require('express')
+const trackerControllers = require('../controllers/tracker')
+const Instrument = require('../models/instrument')
 
 const router = express.Router()
 
-router.get('/ping', (req, res) => {
-	res.send('OK')
+router.get('/ping/:instrumentId', async (req, res) => {
+	try {
+		const { name } = await Instrument.findById(req.params.instrumentId, 'name')
+		res.status(200).send({ name })
+	} catch (error) {
+		res.status(500).send(error)
+	}
 })
 
-router.post('/status', (req, res) => {
-	console.log(req.body)
-	res.send('Status object received OK')
-})
+router.patch('/status', trackerControllers.updateStatus)
 
 module.exports = router
