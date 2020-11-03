@@ -32,7 +32,6 @@ const instrumentSchema = new Schema({
 				type: String,
 				default: 'unknown'
 			},
-
 			running: Boolean,
 			availableHolders: Number,
 			errorCount: Number,
