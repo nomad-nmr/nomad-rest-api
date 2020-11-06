@@ -14,9 +14,9 @@ const port = process.argv[2] ? process.argv[2] : 3000
 // app.use(express.static(publicDirectoryPath))
 app.use(bodyParser.json({ strict: true, limit: '50mb' }))
 
-app.use('/tracker', trackerRoutes)
-app.use('/admin/instruments', instrumentsRoutes)
-app.use('/dash', dashRoutes)
+app.use('/api/tracker', trackerRoutes)
+app.use('/api/admin/instruments', instrumentsRoutes)
+app.use('/api/dash', dashRoutes)
 app.use((req, res) => {
 	res.status(404).send()
 })
