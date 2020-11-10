@@ -76,13 +76,13 @@ exports.updateStatus = async (req, res) => {
 			pendingCount
 		}
 
-		await instrument.updateOne({
-			status: {
-				summary: newStatusSummary,
-				statusTable: newStatusTabData,
-				historyTable: newHistoryTabData
-			}
-		})
+		instrument.status = {
+			summary: newStatusSummary,
+			statusTable: newStatusTabData,
+			historyTable: newHistoryTabData
+		}
+
+		await instrument.save()
 
 		res.status(201).send()
 	} catch (err) {
