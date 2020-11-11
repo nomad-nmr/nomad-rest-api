@@ -37,6 +37,7 @@ exports.getDrawerTable = async (req, res) => {
 		let respArray = []
 		const statusId =
 			req.params.id === 'pending' ? 'available' : req.params.id === 'errors' ? 'error' : req.params.id
+
 		data.forEach(i => {
 			const filteredArray = i.status.statusTable
 				.filter(row => row.status.toLowerCase() === statusId.toLowerCase())
@@ -44,12 +45,18 @@ exports.getDrawerTable = async (req, res) => {
 					const histObject = i.status.historyTable.find(
 						i => row.datasetName === i.datasetName && row.expNo === i.expNo
 					)
-					return { ...row, instrument: i.name, description: histObject.remarks }
+					if (histObject) {
+						return { ...row, instrument: i.name, description: histObject.remarks }
+					} else {
+						return { ...row, instrument: i.name }
+					}
 				})
 			respArray = respArray.concat(filteredArray)
 		})
+
 		res.send(respArray)
 	} catch (error) {
+		console.log(error)
 		res.status(500).send(error)
 	}
 }
