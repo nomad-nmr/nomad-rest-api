@@ -2,13 +2,12 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 
+const port = process.env.PORT
 const app = express()
 
 const trackerRoutes = require('./routes/tracker')
 const instrumentsRoutes = require('./routes/admin/insruments')
 const dashRoutes = require('./routes/dashboard')
-
-const port = process.argv[2] ? process.argv[2] : 3000
 
 app.use(bodyParser.json({ strict: true, limit: '50mb' }))
 
@@ -20,7 +19,7 @@ app.use((req, res) => {
 })
 
 mongoose
-	.connect('mongodb://127.0.0.1:27017/nomad', {
+	.connect(process.env.MONGODB_URL, {
 		useNewUrlParser: true,
 		// useCreateIndex: true,
 		useUnifiedTopology: true,
