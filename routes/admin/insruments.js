@@ -1,17 +1,17 @@
 const express = require('express')
-
+const auth = require('../../middleware/auth')
 const instrumentsController = require('../../controllers/admin/instruments')
 
 const router = express.Router()
 
-router.get('/', instrumentsController.getInstruments)
+router.get('/', auth, instrumentsController.getInstruments)
 
-router.post('/', instrumentsController.addInstrument)
+router.post('/', auth, instrumentsController.addInstrument)
 
-router.put('/', instrumentsController.updateInstruments)
+router.put('/', auth, instrumentsController.updateInstruments)
 
-router.delete('/:id', instrumentsController.deleteInstrument)
+router.delete('/:id', auth, instrumentsController.deleteInstrument)
 
-router.patch('/toggle-available/:id', instrumentsController.toggleAvailable)
+router.patch('/toggle-available/:id', auth, instrumentsController.toggleAvailable)
 
 module.exports = router
