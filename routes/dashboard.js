@@ -1,6 +1,5 @@
 const express = require('express')
 const dashControllers = require('../controllers/dashboard')
-const Instrument = require('../models/instrument')
 
 const router = express.Router()
 
