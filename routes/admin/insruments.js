@@ -1,10 +1,11 @@
 const express = require('express')
 const auth = require('../../middleware/auth')
+const authAdmin = require('../../middleware/auth-admin')
 const instrumentsController = require('../../controllers/admin/instruments')
 
 const router = express.Router()
 
-router.get('/', auth, instrumentsController.getInstruments)
+router.get('/', auth, authAdmin, instrumentsController.getInstruments)
 
 router.post('/', auth, instrumentsController.addInstrument)
 

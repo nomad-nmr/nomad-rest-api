@@ -14,6 +14,7 @@ exports.postLogin = async (req, res) => {
 		const token = await user.generateAuthToken()
 		return res.send({
 			username: user.username,
+			accessLevel: user.accessLevel,
 			token: token,
 			expiresIn: process.env.JWT_EXPIRATION
 		})
@@ -26,4 +27,22 @@ exports.postLogin = async (req, res) => {
 exports.postLogout = async (req, res) => {
 	req.user.removeAuthToken(req.token)
 	res.send()
+}
+
+exports.postUser = async (req, res) => {
+	const { username, password, accessLevel } = req.body
+	const hashedPasswd = await bcrypt.hash(password, 12)
+	const newUser = {
+		username,
+		password: hashedPasswd,
+		email: username + '@' + process.env.EMAIL_SUFFIX,
+		accessLevel
+	}
+	try {
+		const user = new User(newUser)
+		await user.save()
+		res.send()
+	} catch (error) {
+		res.status(500).send(error)
+	}
 }
