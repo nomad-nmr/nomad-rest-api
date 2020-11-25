@@ -6,9 +6,31 @@ const userSchema = new Schema({
 	username: {
 		type: String,
 		required: true,
+		trim: true,
 		unique: true
 	},
-	password: String,
+	fullName: {
+		type: String,
+		trim: true
+	},
+	password: {
+		type: String,
+		required: true
+	},
+	accessLevel: {
+		type: String,
+		required: true,
+		default: 'user'
+	},
+	email: {
+		type: String,
+		required: true
+	},
+	isActive: {
+		type: Boolean,
+		required: true,
+		default: true
+	},
 	tokens: [
 		{
 			token: {

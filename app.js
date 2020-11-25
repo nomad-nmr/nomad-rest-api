@@ -37,7 +37,9 @@ mongoose
 				const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12)
 				const adminUser = await new User({
 					username: 'admin',
-					password: hashedPassword
+					password: hashedPassword,
+					accessLevel: 'admin',
+					email: 'admin@' + process.env.EMAIL_SUFFIX
 				})
 				await adminUser.save()
 			}
