@@ -24,13 +24,21 @@ const userSchema = new Schema({
 	},
 	email: {
 		type: String,
-		required: true
+		required: true,
+		trim: true
+	},
+	group: {
+		type: Schema.Types.ObjectId,
+		required: true,
+		ref: 'Group'
 	},
 	isActive: {
 		type: Boolean,
 		required: true,
 		default: true
 	},
+	lastLogin: Date,
+
 	tokens: [
 		{
 			token: {
@@ -47,9 +55,9 @@ userSchema.methods.generateAuthToken = async function () {
 		expiresIn: +process.env.JWT_EXPIRATION
 	})
 
-	const decode = jwt.decode(token)
-
 	user.tokens.push({ token })
+	user.lastLogin = new Date()
+
 	await user.save()
 
 	return token

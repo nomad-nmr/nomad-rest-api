@@ -2,7 +2,7 @@
 
 const authAdmin = (req, res, next) => {
 	if (req.user.accessLevel !== 'admin') {
-		return res.status('403').send({ error: 'Please authenticate as user with admin access level' })
+		return res.status('403').send('Please authenticate as user with admin access level')
 	}
 	next()
 }
