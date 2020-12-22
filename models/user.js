@@ -46,7 +46,8 @@ const userSchema = new Schema({
 				required: true
 			}
 		}
-	]
+	],
+	resetToken: String
 })
 
 userSchema.methods.generateAuthToken = async function () {
@@ -68,6 +69,16 @@ userSchema.methods.removeAuthToken = async function (token) {
 	const tokens = user.tokens.filter(t => t.token !== token)
 	user.tokens = tokens
 	await user.save()
+}
+
+userSchema.methods.generateResetToken = async function () {
+	const user = this
+	const token = jwt.sign({ _id: user._id.toString() }, user.password, {
+		expiresIn: +process.env.JWT_EXPIRATION
+	})
+	user.resetToken = token
+	await user.save()
+	return token
 }
 
 module.exports = mongoose.model('User', userSchema)

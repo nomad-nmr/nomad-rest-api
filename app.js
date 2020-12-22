@@ -3,7 +3,7 @@ const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 
-const port = process.env.PORT
+const port = process.env.PORT || 3000
 const app = express()
 
 const User = require('./models/user')
@@ -34,7 +34,7 @@ mongoose
 	})
 	.then(async () => {
 		console.log('DB connected')
-		//CReating default group and admin user (TODO: refactor into utility faction that can be used in tracker auto-feed )
+		//CReating default group and admin user (TODO: refactor into utility function that can be used in tracker auto-feed )
 		try {
 			let group = await Group.findOne()
 

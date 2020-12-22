@@ -64,8 +64,8 @@ router.put(
 		body('fullName', 'Full name is invalid')
 			.trim()
 			.matches(/^[a-z' ]+$/i)
-			.isLength({ max: 50 })
-			.withMessage('Full name maximum length is 50')
+			.isLength({ min: 3, max: 50 })
+			.withMessage('Full name minimum length is 3 and maximum length is 50')
 	],
 	auth,
 	authAdmin,
