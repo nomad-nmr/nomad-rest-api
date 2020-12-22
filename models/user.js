@@ -24,13 +24,21 @@ const userSchema = new Schema({
 	},
 	email: {
 		type: String,
-		required: true
+		required: true,
+		trim: true
+	},
+	group: {
+		type: Schema.Types.ObjectId,
+		required: true,
+		ref: 'Group'
 	},
 	isActive: {
 		type: Boolean,
 		required: true,
 		default: true
 	},
+	lastLogin: Date,
+
 	tokens: [
 		{
 			token: {
@@ -38,7 +46,8 @@ const userSchema = new Schema({
 				required: true
 			}
 		}
-	]
+	],
+	resetToken: String
 })
 
 userSchema.methods.generateAuthToken = async function () {
@@ -47,9 +56,9 @@ userSchema.methods.generateAuthToken = async function () {
 		expiresIn: +process.env.JWT_EXPIRATION
 	})
 
-	const decode = jwt.decode(token)
-
 	user.tokens.push({ token })
+	user.lastLogin = new Date()
+
 	await user.save()
 
 	return token
@@ -60,6 +69,16 @@ userSchema.methods.removeAuthToken = async function (token) {
 	const tokens = user.tokens.filter(t => t.token !== token)
 	user.tokens = tokens
 	await user.save()
+}
+
+userSchema.methods.generateResetToken = async function () {
+	const user = this
+	const token = jwt.sign({ _id: user._id.toString() }, user.password, {
+		expiresIn: +process.env.JWT_EXPIRATION
+	})
+	user.resetToken = token
+	await user.save()
+	return token
 }
 
 module.exports = mongoose.model('User', userSchema)
