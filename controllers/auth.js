@@ -12,6 +12,9 @@ exports.postLogin = async (req, res) => {
 		if (!user) {
 			return res.status(400).send('Wrong username or password')
 		}
+		if (!user.isActive) {
+			return res.status(400).send('User is inactive')
+		}
 		const passMatch = await bcrypt.compare(req.body.password, user.password)
 		if (!passMatch) {
 			return res.status(400).send('Wrong username or password')

@@ -5,8 +5,12 @@ const User = require('../../models/user')
 const Group = require('../../models/group')
 
 exports.getUsers = async (req, res) => {
+	const searchParams = { isActive: true }
+	if (req.query.showInactive === 'true') {
+		delete searchParams.isActive
+	}
 	try {
-		const users = await User.find({}, '-tokens -password').populate('group')
+		const users = await User.find(searchParams, '-tokens -password').populate('group')
 
 		if (!users) {
 			res.status(404).send()
