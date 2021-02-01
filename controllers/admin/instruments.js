@@ -2,8 +2,13 @@ const { validationResult } = require('express-validator')
 const Instrument = require('../../models/instrument')
 
 exports.getInstruments = async (req, res) => {
+	console.log(req.query.showInactive)
+	const searchParams = { isActive: true }
+	if (req.query.showInactive === 'true') {
+		delete searchParams.isActive
+	}
 	try {
-		const tableData = await Instrument.find({}, '-status')
+		const tableData = await Instrument.find(searchParams, '-status')
 		res.send(tableData)
 	} catch (err) {
 		console.log(err)
@@ -19,8 +24,7 @@ exports.addInstrument = async (req, res) => {
 		}
 		const instrument = new Instrument(req.body)
 		await instrument.save()
-		const tableData = await Instrument.find({}, '-status')
-		res.send(tableData)
+		res.status(201).send(instrument)
 	} catch (err) {
 		console.log(err)
 		res.status(500).send(err)
@@ -37,22 +41,7 @@ exports.updateInstruments = async (req, res) => {
 		if (!instrument) {
 			return res.status(404).send()
 		}
-		const tableData = await Instrument.find({}, '-status')
-		res.send(tableData)
-	} catch (err) {
-		console.log(err)
-		res.status(500).send(err)
-	}
-}
-
-exports.deleteInstrument = async (req, res) => {
-	try {
-		const instrument = await Instrument.findByIdAndDelete(req.params.id)
-		if (!instrument) {
-			return res.status(404).send()
-		}
-		const tableData = await Instrument.find({}, '-status')
-		res.send(tableData)
+		res.send(instrument)
 	} catch (err) {
 		console.log(err)
 		res.status(500).send(err)
@@ -67,7 +56,22 @@ exports.toggleAvailable = async (req, res) => {
 		}
 		instrument.available = !instrument.available
 		const updatedInstrument = await instrument.save()
-		res.send({ _id: updatedInstrument._id, available: updatedInstrument.available })
+		res.send({ message: 'Instrument available status updated', _id: updatedInstrument._id })
+	} catch (err) {
+		console.log(err)
+		res.status(500).send(err)
+	}
+}
+
+exports.toggleActive = async (req, res) => {
+	try {
+		const instrument = await Instrument.findById(req.params.id)
+		if (!instrument) {
+			return res.status(404).send()
+		}
+		instrument.isActive = !instrument.isActive
+		const updatedInstrument = await instrument.save()
+		res.send({ message: 'Instrument active status updated', _id: updatedInstrument._id })
 	} catch (err) {
 		console.log(err)
 		res.status(500).send(err)

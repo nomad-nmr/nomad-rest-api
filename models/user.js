@@ -2,53 +2,56 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const jwt = require('jsonwebtoken')
 
-const userSchema = new Schema({
-	username: {
-		type: String,
-		required: true,
-		trim: true,
-		unique: true
-	},
-	fullName: {
-		type: String,
-		trim: true
-	},
-	password: {
-		type: String,
-		required: true
-	},
-	accessLevel: {
-		type: String,
-		required: true,
-		default: 'user'
-	},
-	email: {
-		type: String,
-		required: true,
-		trim: true
-	},
-	group: {
-		type: Schema.Types.ObjectId,
-		required: true,
-		ref: 'Group'
-	},
-	isActive: {
-		type: Boolean,
-		required: true,
-		default: true
-	},
-	lastLogin: Date,
+const userSchema = new Schema(
+	{
+		username: {
+			type: String,
+			required: true,
+			trim: true,
+			unique: true
+		},
+		fullName: {
+			type: String,
+			trim: true
+		},
+		password: {
+			type: String,
+			required: true
+		},
+		accessLevel: {
+			type: String,
+			required: true,
+			default: 'user'
+		},
+		email: {
+			type: String,
+			required: true,
+			trim: true
+		},
+		group: {
+			type: Schema.Types.ObjectId,
+			required: true,
+			ref: 'Group'
+		},
+		isActive: {
+			type: Boolean,
+			required: true,
+			default: true
+		},
+		lastLogin: Date,
 
-	tokens: [
-		{
-			token: {
-				type: String,
-				required: true
+		tokens: [
+			{
+				token: {
+					type: String,
+					required: true
+				}
 			}
-		}
-	],
-	resetToken: String
-})
+		],
+		resetToken: String
+	},
+	{ timestamps: true }
+)
 
 userSchema.methods.generateAuthToken = async function () {
 	const user = this

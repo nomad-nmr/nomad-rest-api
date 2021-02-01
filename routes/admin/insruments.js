@@ -56,8 +56,8 @@ router.put(
 	instrumentsController.updateInstruments
 )
 
-router.delete('/:id', auth, authAdmin, instrumentsController.deleteInstrument)
-
 router.patch('/toggle-available/:id', auth, authAdmin, instrumentsController.toggleAvailable)
+
+router.patch('/toggle-active/:id', auth, authAdmin, instrumentsController.toggleActive)
 
 module.exports = router

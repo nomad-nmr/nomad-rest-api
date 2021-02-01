@@ -16,14 +16,26 @@ const usersRoutes = require('./routes/admin/users')
 
 app.use(bodyParser.json({ strict: true, limit: '50mb' }))
 
-app.use('/api/tracker', trackerRoutes)
-app.use('/api/admin/instruments', instrumentsRoutes)
-app.use('/api/dash', dashRoutes)
-app.use('/api/auth', authRoutes)
-app.use('/api/admin/users', usersRoutes)
+//Setting headers to allow CORS
+app.use((req, res, next) => {
+	res.setHeader('Access-Control-Allow-Origin', '*')
+	res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE')
+	res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+	next()
+})
+
+app.use('/tracker', trackerRoutes)
+app.use('/admin/instruments', instrumentsRoutes)
+app.use('/dash', dashRoutes)
+app.use('/auth', authRoutes)
+app.use('/admin/users', usersRoutes)
 app.use((req, res) => {
 	res.status(404).send()
 })
+
+// Setting findByIdAndUpdate() to return updated document
+// Default setting is true
+mongoose.set('returnOriginal', false)
 
 mongoose
 	.connect(process.env.MONGODB_URL, {
