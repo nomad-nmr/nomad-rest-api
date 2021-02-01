@@ -2,7 +2,7 @@ const Instrument = require('../models/instrument')
 
 exports.getStatusSummary = async (req, res) => {
 	try {
-		const data = await Instrument.find({}, '-status.statusTable -status.historyTable')
+		const data = await Instrument.find({ isActive: true }, '-status.statusTable -status.historyTable')
 		if (!data) {
 			return res.status(404).send()
 		}
@@ -14,7 +14,7 @@ exports.getStatusSummary = async (req, res) => {
 
 exports.getStatusTable = async (req, res) => {
 	try {
-		const data = await Instrument.find({}, 'status.statusTable')
+		const data = await Instrument.find({ isActive: true }, 'status.statusTable')
 		if (!data) {
 			return res.status(404).send()
 		}

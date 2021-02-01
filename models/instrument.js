@@ -17,6 +17,11 @@ const instrumentSchema = new Schema({
 		type: Boolean,
 		default: false
 	},
+	isActive: {
+		type: Boolean,
+		required: true,
+		default: true
+	},
 
 	status: {
 		summary: {

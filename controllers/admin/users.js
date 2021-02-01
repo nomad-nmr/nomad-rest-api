@@ -69,7 +69,7 @@ exports.postUser = async (req, res) => {
 
 		const user = new User(newUser)
 		await user.save()
-		res.send()
+		res.status(201).send(user)
 	} catch (error) {
 		console.log(error)
 		res.status(500).send(error)
@@ -87,7 +87,7 @@ exports.updateUser = async (req, res) => {
 		if (!user) {
 			return res.status(404).send()
 		}
-		res.send()
+		res.send(user)
 	} catch (error) {
 		console.log(error)
 		res.status(500).send()
@@ -104,7 +104,7 @@ exports.toggleActive = async (req, res) => {
 		user.isActive = !user.isActive
 
 		const updatedUser = await user.save()
-		res.send(updatedUser)
+		res.send({ message: 'User active status was updated', _id: updatedUser._id })
 	} catch (error) {
 		console.log(error)
 		res.status(500).send(error)
