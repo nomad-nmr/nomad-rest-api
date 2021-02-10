@@ -18,6 +18,7 @@ exports.getStatusTable = async (req, res) => {
 		if (!data) {
 			return res.status(404).send()
 		}
+		//Filtering off entries in the table with 'Available'(Pending) status
 		const filteredData = data[req.params.key].status.statusTable.filter(
 			entry => entry.status !== 'Available'
 		)

@@ -1,5 +1,5 @@
 const Instrument = require('../models/instrument')
-const { toggleAvailable } = require('./admin/instruments')
+const io = require('../socket')
 
 //new keys for status and history data objects
 const statusKeysArr = ['holder', 'status', 'datasetName', 'expNo', 'experiment', 'group', 'time', 'title']
@@ -33,7 +33,7 @@ const addNewKeys = (rawDataArr, keys) => {
 		let newRowObj = keys.reduce((o, key, index) => ({ ...o, [key]: values[index] }), {})
 
 		// Extracting username from dataset name
-		// TODO: username could be extracted from title (originator item). Allow to change through instrument settings
+		// TODO: username could be extracted from title (originator item in IconNMR). Allow to change through instrument settings
 		newRowObj = { ...newRowObj, username: newRowObj.datasetName.split('-')[3] }
 
 		newTableData.push(newRowObj)
@@ -82,7 +82,8 @@ exports.updateStatus = async (req, res) => {
 			historyTable: newHistoryTabData
 		}
 
-		await instrument.save()
+		const instr = await instrument.save()
+		io.getIO().emit('statusUpdate', { instrId: instr._id, statusSummary: instr.status.summary })
 
 		res.status(201).send()
 	} catch (err) {

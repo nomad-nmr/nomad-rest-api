@@ -49,12 +49,13 @@ mongoose
 		//CReating default group and admin user (TODO: refactor into utility function that can be used in tracker auto-feed )
 		try {
 			let group = await Group.findOne()
-
+			//Adding the default group
 			if (!group) {
 				group = new Group()
 				await group.save()
 			}
 
+			// adding default admin user
 			const user = await User.findOne()
 			if (!user) {
 				const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12)
@@ -67,8 +68,16 @@ mongoose
 				})
 				await adminUser.save()
 			}
-			app.listen(port, () => {
-				console.log(`Server is up on port ${port}`)
+
+			//Starting the express server
+			const server = app.listen(port, () => {
+				console.log(`Server is running on port ${port}`)
+			})
+
+			//Initiating socket.io
+			const io = require('./socket').init(server)
+			io.on('connection', socket => {
+				console.log('Client connected', socket.id)
 			})
 		} catch (error) {
 			console.log(error)
