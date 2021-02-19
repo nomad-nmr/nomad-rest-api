@@ -2,7 +2,6 @@ const { validationResult } = require('express-validator')
 const Instrument = require('../../models/instrument')
 
 exports.getInstruments = async (req, res) => {
-	console.log(req.query.showInactive)
 	const searchParams = { isActive: true }
 	if (req.query.showInactive === 'true') {
 		delete searchParams.isActive
