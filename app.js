@@ -3,7 +3,7 @@ const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 8080
 const app = express()
 
 const User = require('./models/user')
@@ -24,11 +24,11 @@ app.use((req, res, next) => {
 	next()
 })
 
-app.use('/tracker', trackerRoutes)
-app.use('/admin/instruments', instrumentsRoutes)
-app.use('/dash', dashRoutes)
-app.use('/auth', authRoutes)
-app.use('/admin/users', usersRoutes)
+app.use('/api/tracker', trackerRoutes)
+app.use('/api/admin/instruments', instrumentsRoutes)
+app.use('/api/dash', dashRoutes)
+app.use('/api/auth', authRoutes)
+app.use('/api/admin/users', usersRoutes)
 app.use((req, res) => {
 	res.status(404).send()
 })
