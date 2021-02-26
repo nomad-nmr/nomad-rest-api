@@ -4,7 +4,10 @@ const { validationResult } = require('express-validator')
 const User = require('../../models/user')
 const Group = require('../../models/group')
 
+const formatDate = require('../../utils/formatDate')
+
 exports.getUsers = async (req, res) => {
+	//setting search parameters according to showInactive settings
 	const searchParams = { isActive: true }
 	if (req.query.showInactive === 'true') {
 		delete searchParams.isActive
@@ -17,13 +20,14 @@ exports.getUsers = async (req, res) => {
 		}
 
 		const usersArr = users.map(user => {
-			const lastLogin = new Date(user._doc.lastLogin).toLocaleString('en-GB', {
-				day: '2-digit',
-				month: 'short',
-				year: '2-digit',
-				hour: '2-digit',
-				minute: '2-digit'
-			})
+			const lastLogin = formatDate(user._doc.lastLogin)
+			// new Date(user._doc.lastLogin).toLocaleString('en-GB', {
+			// 	day: '2-digit',
+			// 	month: 'short',
+			// 	year: '2-digit',
+			// 	hour: '2-digit',
+			// 	minute: '2-digit'
+			// })
 			const inactiveDays = Math.floor(
 				(new Date() - Date.parse(user._doc.lastLogin)) / (1000 * 60 * 60 * 24)
 			)
@@ -44,8 +48,9 @@ exports.getUsers = async (req, res) => {
 }
 
 exports.postUser = async (req, res) => {
-	const { username, email, accessLevel, fullName, groupName, isActive } = req.body
+	const { username, email, accessLevel, fullName, isActive, groupName } = req.body
 	const errors = validationResult(req)
+
 	try {
 		if (!errors.isEmpty()) {
 			return res.status(422).send(errors)
@@ -57,7 +62,8 @@ exports.postUser = async (req, res) => {
 		if (!group) {
 			throw new Error('Group does not exist')
 		}
-		const newUser = {
+
+		const newUserObj = {
 			username: username.toLowerCase(),
 			fullName,
 			password: hashedPasswd,
@@ -67,9 +73,11 @@ exports.postUser = async (req, res) => {
 			isActive
 		}
 
-		const user = new User(newUser)
-		await user.save()
-		res.status(201).send(user)
+		const user = new User(newUserObj)
+		const newUser = await user.save()
+		await newUser.populate('group').execPopulate()
+		delete newUser.password
+		res.status(201).send(newUser)
 	} catch (error) {
 		console.log(error)
 		res.status(500).send(error)
@@ -77,17 +85,27 @@ exports.postUser = async (req, res) => {
 }
 
 exports.updateUser = async (req, res) => {
-	// const { username, email, accessLevel, fullName, groupName, isActive } = req.body
 	const errors = validationResult(req)
+
 	try {
 		if (!errors.isEmpty()) {
 			return res.status(422).send(errors)
 		}
-		const user = await User.findByIdAndUpdate(req.body._id, req.body)
+
+		const group = await Group.findOne({ groupName: req.body.groupName })
+		if (!group) {
+			throw new Error('Group does not exist')
+		}
+
+		const updatedUser = { ...req.body, group: group._id }
+
+		const user = await User.findByIdAndUpdate(req.body._id, updatedUser).populate('group')
 		if (!user) {
 			return res.status(404).send()
 		}
-		res.send(user)
+		delete user.password
+		delete user.tokens
+		res.status(201).send({ ...user._doc, lastLogin: formatDate(user.lastLogin) })
 	} catch (error) {
 		console.log(error)
 		res.status(500).send()

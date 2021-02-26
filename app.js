@@ -13,6 +13,7 @@ const instrumentsRoutes = require('./routes/admin/insruments')
 const dashRoutes = require('./routes/dashboard')
 const authRoutes = require('./routes/auth')
 const usersRoutes = require('./routes/admin/users')
+const groupsRoutes = require('./routes/admin/groups')
 
 app.use(bodyParser.json({ strict: true, limit: '50mb' }))
 
@@ -24,11 +25,12 @@ app.use((req, res, next) => {
 	next()
 })
 
-app.use('/api/tracker', trackerRoutes)
-app.use('/api/admin/instruments', instrumentsRoutes)
-app.use('/api/dash', dashRoutes)
-app.use('/api/auth', authRoutes)
-app.use('/api/admin/users', usersRoutes)
+app.use('/tracker', trackerRoutes)
+app.use('/admin/instruments', instrumentsRoutes)
+app.use('/dash', dashRoutes)
+app.use('/auth', authRoutes)
+app.use('/admin/users', usersRoutes)
+app.use('/admin/groups', groupsRoutes)
 app.use((req, res) => {
 	res.status(404).send()
 })
