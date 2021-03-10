@@ -50,17 +50,7 @@ router.post(
 router.put(
 	'/',
 	[
-		body('email', 'Email is invalid')
-			.trim()
-			.isEmail()
-			.normalizeEmail()
-			.custom(value => {
-				return User.find({ email: value }).then(users => {
-					if (users.length > 1) {
-						return Promise.reject(`Error: Email ${value} already exists`)
-					}
-				})
-			}),
+		body('email', 'Email is invalid').trim().isEmail().normalizeEmail(),
 		body('fullName', 'Full name is invalid')
 			.trim()
 			.matches(/^[a-z' ]+$/i)

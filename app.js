@@ -14,6 +14,7 @@ const dashRoutes = require('./routes/dashboard')
 const authRoutes = require('./routes/auth')
 const usersRoutes = require('./routes/admin/users')
 const groupsRoutes = require('./routes/admin/groups')
+const historyRoutes = require('./routes/admin/history')
 
 app.use(bodyParser.json({ strict: true, limit: '50mb' }))
 
@@ -31,6 +32,7 @@ app.use('/dash', dashRoutes)
 app.use('/auth', authRoutes)
 app.use('/admin/users', usersRoutes)
 app.use('/admin/groups', groupsRoutes)
+app.use('/admin/history', historyRoutes)
 app.use((req, res) => {
 	res.status(404).send()
 })
@@ -79,7 +81,9 @@ mongoose
 			//Initiating socket.io
 			const io = require('./socket').init(server)
 			io.on('connection', socket => {
-				console.log('Client connected', socket.id)
+				if (process.env.NODE_ENV !== 'production') {
+					console.log('Client connected', socket.id)
+				}
 			})
 		} catch (error) {
 			console.log(error)
