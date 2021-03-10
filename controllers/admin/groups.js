@@ -1,8 +1,6 @@
 const { validationResult } = require('express-validator')
 
 const Group = require('../../models/group')
-const User = require('../../models/user')
-const formatDate = require('../../utils/formatDate')
 
 exports.getGroups = async (req, res) => {
 	//setting search parameters according to showInactive settings
@@ -18,15 +16,17 @@ exports.getGroups = async (req, res) => {
 		}
 
 		if (req.query.list === 'true') {
-			const groupList = groups.map(grp => grp.groupName)
+			const groupList = groups.map(grp => {
+				return { name: grp.groupName, id: grp._id }
+			})
 			return res.send(groupList)
 		}
 
 		//Calculation of numbers of users in each group
 		const resGroupsObj = await Promise.all(
 			groups.map(async grp => {
-				const usersCounts = await getUserCounts(grp._id)
-				return { ...grp._doc, ...usersCounts, createdAt: formatDate(grp.createdAt) }
+				const usersCounts = await grp.getUserCounts()
+				return { ...grp._doc, ...usersCounts }
 			})
 		)
 
@@ -45,8 +45,8 @@ exports.addGroup = async (req, res) => {
 			return res.status(422).send(errors)
 		}
 		const group = new Group({ groupName: groupName.toLowerCase(), description })
-		await group.save()
-		res.status(201).send({ ...group._doc, createdAt: formatDate(group.createdAt) })
+		const newGroup = await group.save()
+		res.status(201).send(newGroup)
 	} catch (error) {
 		console.log(error)
 		res.status(500).send(error)
@@ -59,7 +59,13 @@ exports.updateGroup = async (req, res) => {
 		if (!group) {
 			res.status(404).send()
 		}
-		res.send({ ...group._doc, createdAt: formatDate(group.createdAt) })
+
+		if (!group.isActive) {
+			group.setUsersInactive()
+		}
+
+		const usersCounts = await group.getUserCounts()
+		res.send({ ...group._doc, ...usersCounts })
 	} catch (error) {
 		console.log(error)
 		res.status(500).send(error)
@@ -72,21 +78,17 @@ exports.toggleActive = async (req, res) => {
 		if (!group) {
 			res.status(404).send()
 		}
+
 		group.isActive = !group.isActive
+
+		if (!group.isActive) {
+			group.setUsersInactive()
+		}
+
 		const updatedGroup = await group.save()
 		res.status(200).send({ message: 'Group active status updated successfully', _id: updatedGroup._id })
 	} catch (error) {
 		console.log(error)
 		res.status(500).send(error)
-	}
-}
-
-//Helper function that counts total and active users in a group
-const getUserCounts = async groupId => {
-	const totalUserCount = await User.find({ group: groupId }).countDocuments()
-	const activeUserCount = await User.find({ group: groupId, isActive: true }).countDocuments()
-	return {
-		totalUserCount,
-		activeUserCount
 	}
 }

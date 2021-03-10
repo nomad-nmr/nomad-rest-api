@@ -7,8 +7,14 @@ exports.getInstruments = async (req, res) => {
 		delete searchParams.isActive
 	}
 	try {
-		const tableData = await Instrument.find(searchParams, '-status')
-		res.send(tableData)
+		const instrumentsData = await Instrument.find(searchParams, '-status')
+		if (req.query.list === 'true') {
+			const instrList = instrumentsData.map(instr => {
+				return { name: instr.name, id: instr._id }
+			})
+			return res.send(instrList)
+		}
+		res.send(instrumentsData)
 	} catch (err) {
 		console.log(err)
 		res.status(500).send(err)

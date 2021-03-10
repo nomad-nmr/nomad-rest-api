@@ -1,10 +1,9 @@
 const bcrypt = require('bcryptjs')
 const { validationResult } = require('express-validator')
+const moment = require('moment')
 
 const User = require('../../models/user')
 const Group = require('../../models/group')
-
-const formatDate = require('../../utils/formatDate')
 
 exports.getUsers = async (req, res) => {
 	//setting search parameters according to showInactive settings
@@ -20,22 +19,16 @@ exports.getUsers = async (req, res) => {
 		}
 
 		const usersArr = users.map(user => {
-			const lastLogin = formatDate(user._doc.lastLogin)
-			// new Date(user._doc.lastLogin).toLocaleString('en-GB', {
-			// 	day: '2-digit',
-			// 	month: 'short',
-			// 	year: '2-digit',
-			// 	hour: '2-digit',
-			// 	minute: '2-digit'
-			// })
-			const inactiveDays = Math.floor(
-				(new Date() - Date.parse(user._doc.lastLogin)) / (1000 * 60 * 60 * 24)
-			)
+			const inactiveDays = moment().diff(moment(user._doc.lastLogin), 'days')
+			// Math.floor(
+			// 	(new Date() - Date.parse(user._doc.lastLogin)) / (1000 * 60 * 60 * 24)
+			// )
 
 			const newUser = {
 				...user._doc,
-				lastLogin: lastLogin !== 'Invalid Date' ? lastLogin : '-',
-				inactiveDays: inactiveDays.toString() !== 'NaN' ? inactiveDays : '-'
+				lastLogin: user._doc.lastLogin ? moment(user._doc.lastLogin).format('DD MMM YYYY, h:mm') : '-',
+				inactiveDays: user._doc.lastLogin ? moment().diff(moment(user._doc.lastLogin), 'days') : '-'
+				// inactiveDays.toString() !== 'NaN' ? inactiveDays : '-'
 			}
 
 			return newUser
@@ -105,7 +98,9 @@ exports.updateUser = async (req, res) => {
 		}
 		delete user.password
 		delete user.tokens
-		res.status(201).send({ ...user._doc, lastLogin: formatDate(user.lastLogin) })
+		const lastLogin = user._doc.lastLogin ? moment(user._doc.lastLogin).format('DD MMM YYYY, h:mm') : '-'
+		const inactiveDays = user._doc.lastLogin ? moment().diff(moment(user._doc.lastLogin), 'days') : '-'
+		res.status(201).send({ ...user._doc, lastLogin, inactiveDays })
 	} catch (error) {
 		console.log(error)
 		res.status(500).send()
