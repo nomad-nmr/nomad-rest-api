@@ -1,5 +1,5 @@
 const express = require('express')
-const historyControllers = require('../../controllers/admin/history')
+const historyControllers = require('../../controllers/admin/expHistory')
 
 const router = express.Router()
 

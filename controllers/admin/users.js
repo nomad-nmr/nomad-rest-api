@@ -7,12 +7,38 @@ const Group = require('../../models/group')
 
 exports.getUsers = async (req, res) => {
 	//setting search parameters according to showInactive settings
-	const searchParams = { isActive: true }
-	if (req.query.showInactive === 'true') {
-		delete searchParams.isActive
+	const { showInactive, current, pageSize, accessLevel, group, username, inactiveDaysOrder } = req.query
+
+	const searchParams = { $and: [{}] }
+
+	if (showInactive === 'true') {
+		searchParams.$and.push({ isActive: true })
 	}
+
+	if (accessLevel && accessLevel !== 'null') {
+		const accessLevelArr = accessLevel.split(',')
+		searchParams.$and.push({ $or: accessLevelArr.map(i => ({ accessLevel: i })) })
+	}
+
+	if (group && group !== 'null') {
+		const groupArr = group.split(',')
+		searchParams.$and.push({ $or: groupArr.map(i => ({ group: i })) })
+	}
+
+	if (username) {
+		const regex = new RegExp(username, 'i')
+		searchParams.$and.push({
+			$or: [{ username: { $regex: regex } }, { fullName: { $regex: regex } }]
+		})
+	}
+
 	try {
-		const users = await User.find(searchParams, '-tokens -password').populate('group')
+		const total = await User.find(searchParams).countDocuments()
+		const users = await User.find(searchParams, '-tokens -password')
+			.skip((current - 1) * pageSize)
+			.limit(+pageSize)
+			.sort({ username: 'ascending' })
+			.populate('group')
 
 		if (!users) {
 			res.status(404).send()
@@ -33,7 +59,16 @@ exports.getUsers = async (req, res) => {
 
 			return newUser
 		})
-		res.send(usersArr)
+
+		usersArr.sort((a, b) => {
+			if (inactiveDaysOrder === 'ascend') {
+				return a - b
+			} else {
+				return b - a
+			}
+		})
+
+		res.send({ users: usersArr, pagination: { current, pageSize, total } })
 	} catch (error) {
 		console.log(error)
 		res.status(500).send(error)

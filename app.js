@@ -2,6 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
+const helmet = require('helmet')
 
 const port = process.env.PORT || 8080
 const app = express()
@@ -14,9 +15,10 @@ const dashRoutes = require('./routes/dashboard')
 const authRoutes = require('./routes/auth')
 const usersRoutes = require('./routes/admin/users')
 const groupsRoutes = require('./routes/admin/groups')
-const historyRoutes = require('./routes/admin/history')
+const historyRoutes = require('./routes/admin/expHistory')
 
 app.use(bodyParser.json({ strict: true, limit: '50mb' }))
+app.use(helmet())
 
 //Setting headers to allow CORS
 app.use((req, res, next) => {
