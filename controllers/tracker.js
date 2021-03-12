@@ -66,8 +66,8 @@ exports.updateStatus = async (req, res) => {
 			return res.status(404).send('Instrument not found')
 		}
 
-		const newStatusTabData = addNewKeys(req.body.data[1], statusKeysArr)
-		const newHistoryTabData = addNewKeys(req.body.data[2], historyKeysArr)
+		const newStatusTabData = addNewKeys(req.body.data[1], statusKeysArr) || []
+		const newHistoryTabData = addNewKeys(req.body.data[2], historyKeysArr) || []
 
 		//checking whether there is a running experiment
 		const running = newStatusTabData.find(entry => entry.status === 'Running') ? true : false
@@ -100,9 +100,10 @@ exports.updateStatus = async (req, res) => {
 		let histItem = runningExperiments.update(req.body.instrumentId, newStatusTabData)
 
 		if (histItem) {
-			const rawHistItemObj = newHistoryTabData.find(
-				entry => entry.datasetName === histItem.datasetName && entry.expNo === histItem.expNo
-			)
+			const rawHistItemObj =
+				newHistoryTabData.find(
+					entry => entry.datasetName === histItem.datasetName && entry.expNo === histItem.expNo
+				) || {}
 			const statusEntry = newStatusTabData.find(
 				entry => entry.datasetName === histItem.datasetName && entry.expNo === histItem.expNo
 			)
@@ -110,21 +111,10 @@ exports.updateStatus = async (req, res) => {
 			const status = statusEntry.status || 'Unknown'
 			const expTime = statusEntry.time || 'Unknown'
 
-			// //Disabling the
-			// if(status === 'Error'){
-			// 	errorCount++
-			// } else {
-			// 	errorCount = 0
-			// }
-
-			// if (errorCount === 3) {
-			// 	instrument.available === false
-			// }
-
-			//AutoFeed for user and group
+			//AUTO-FEED for user and group
 			let group = await Group.findOne({ groupName: rawHistItemObj.group })
 			if (!group) {
-				const newGroup = new Group({ groupName: rawHistItemObj.group })
+				const newGroup = new Group({ groupName: rawHistItemObj.group.toLowerCase() })
 				group = await newGroup.save()
 				console.log(`New group ${group.groupName} was created`)
 			}
@@ -132,7 +122,7 @@ exports.updateStatus = async (req, res) => {
 			if (!user) {
 				const password = await bcrypt.hash(Math.random().toString(), 12)
 				const newUser = new User({
-					username: rawHistItemObj.username,
+					username: rawHistItemObj.username.toLowerCase(),
 					group: group._id,
 					email: rawHistItemObj.username + '@' + process.env.EMAIL_SUFFIX,
 					password
@@ -160,11 +150,9 @@ exports.updateStatus = async (req, res) => {
 		}
 
 		//the following block update remarks to the experiment if they appear in history table in later update of the status file
-		if (newHistoryTabData[0].remarks) {
-			await Experiment.findOneAndUpdate(
-				{ datasetName: newHistoryTabData[0].datasetName },
-				{ remarks: newHistoryTabData[0].remarks }
-			)
+		if (newHistoryTabData[0] && newHistoryTabData[0].remarks) {
+			const { datasetName, expNo, remarks } = newHistoryTabData[0]
+			await Experiment.findOneAndUpdate({ datasetName, expNo }, { remarks })
 		}
 
 		instrument.status = {
