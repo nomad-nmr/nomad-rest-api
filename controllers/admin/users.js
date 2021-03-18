@@ -7,11 +7,10 @@ const Group = require('../../models/group')
 
 exports.getUsers = async (req, res) => {
 	//setting search parameters according to showInactive settings
-	const { showInactive, current, pageSize, accessLevel, group, username, inactiveDaysOrder } = req.query
-
+	const { showInactive, current, pageSize, accessLevel, group, username, lastLoginOrder } = req.query
 	const searchParams = { $and: [{}] }
 
-	if (showInactive === 'true') {
+	if (showInactive === 'false') {
 		searchParams.$and.push({ isActive: true })
 	}
 
@@ -32,12 +31,19 @@ exports.getUsers = async (req, res) => {
 		})
 	}
 
+	const sorter =
+		lastLoginOrder === 'ascend'
+			? { lastLogin: 'ascending' }
+			: lastLoginOrder === 'descend'
+			? { lastLogin: 'descending' }
+			: { username: 'ascending' }
+
 	try {
 		const total = await User.find(searchParams).countDocuments()
 		const users = await User.find(searchParams, '-tokens -password')
 			.skip((current - 1) * pageSize)
 			.limit(+pageSize)
-			.sort({ username: 'ascending' })
+			.sort(sorter)
 			.populate('group')
 
 		if (!users) {
@@ -60,15 +66,7 @@ exports.getUsers = async (req, res) => {
 			return newUser
 		})
 
-		usersArr.sort((a, b) => {
-			if (inactiveDaysOrder === 'ascend') {
-				return a - b
-			} else {
-				return b - a
-			}
-		})
-
-		res.send({ users: usersArr, pagination: { current, pageSize, total } })
+		res.send({ users: usersArr, total })
 	} catch (error) {
 		console.log(error)
 		res.status(500).send(error)

@@ -10,7 +10,7 @@ exports.getGroups = async (req, res) => {
 	}
 
 	try {
-		const groups = await Group.find(searchParams)
+		const groups = await Group.find(searchParams).sort({ groupName: 'asc' })
 		if (!groups) {
 			res.status(404).send()
 		}

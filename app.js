@@ -5,6 +5,8 @@ const bcrypt = require('bcryptjs')
 const helmet = require('helmet')
 
 const port = process.env.PORT || 8080
+const host = process.env.HOST || '0.0.0.0'
+
 const app = express()
 
 const User = require('./models/user')
@@ -76,7 +78,7 @@ mongoose
 			}
 
 			//Starting the express server
-			const server = app.listen(port, () => {
+			const server = app.listen(port, host, () => {
 				console.log(`Server is running on port ${port}`)
 			})
 
