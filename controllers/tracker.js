@@ -5,6 +5,7 @@ const Instrument = require('../models/instrument')
 const Group = require('../models/group')
 const User = require('../models/user')
 const Experiment = require('../models/experiment')
+const ParameterSet = require('../models/paramterSet')
 
 const runningExperiments = require('../utils/runningExperiments')
 
@@ -100,48 +101,92 @@ exports.updateStatus = async (req, res) => {
 		let histItem = runningExperiments.update(req.body.instrumentId, newStatusTabData)
 
 		if (histItem) {
-			const rawHistItemObj =
-				newHistoryTabData.find(
-					entry => entry.datasetName === histItem.datasetName && entry.expNo === histItem.expNo
-				) || {}
+			const rawHistItemObj = newHistoryTabData.find(
+				entry => entry.datasetName === histItem.datasetName && entry.expNo === histItem.expNo
+			)
+
 			const statusEntry = newStatusTabData.find(
 				entry => entry.datasetName === histItem.datasetName && entry.expNo === histItem.expNo
 			)
 
-			const status = statusEntry.status || 'Unknown'
-			const expTime = statusEntry.time || 'Unknown'
+			const status = statusEntry ? statusEntry.status : 'Unknown'
+			const expTime = statusEntry ? statusEntry.time : 'Unknown'
 
-			//AUTO-FEED for user and group
-			let group = await Group.findOne({ groupName: rawHistItemObj.group })
-			if (!group) {
-				const newGroup = new Group({ groupName: rawHistItemObj.group.toLowerCase() })
-				group = await newGroup.save()
-				console.log(`New group ${group.groupName} was created`)
-			}
-			let user = await User.findOne({ username: rawHistItemObj.username })
-			if (!user) {
-				const password = await bcrypt.hash(Math.random().toString(), 12)
-				const newUser = new User({
-					username: rawHistItemObj.username.toLowerCase(),
-					group: group._id,
-					email: rawHistItemObj.username + '@' + process.env.EMAIL_SUFFIX,
-					password
-				})
-				user = await newUser.save()
-				console.log(`New user ${user.username} at group ${group.groupName} was created`)
-			}
+			if (rawHistItemObj) {
+				//AUTO-FEED for group
+				let group = await Group.findOne({ groupName: rawHistItemObj.group })
+				if (!group) {
+					if (!process.env.AUTOFEED_ON) {
+						const error = new Error('Group was not found')
+						throw error
+					}
+					const newGroup = new Group({ groupName: rawHistItemObj.group.toLowerCase() })
+					group = await newGroup.save()
+					console.log(`New group ${group.groupName} was created`)
+				}
 
-			histItem = {
-				...rawHistItemObj,
-				status,
-				expTime,
-				finishedAt: new Date(),
-				instrument: { name: instrument.name, id: instrument._id },
-				group: { name: group.groupName, id: group._id },
-				user: { username: user.username, id: user._id }
+				//AUTO-FEED for user
+				let user = await User.findOne({ username: rawHistItemObj.username })
+				if (!user) {
+					if (!process.env.AUTOFEED_ON) {
+						const error = new Error('User was not found')
+						throw error
+					}
+					const password = await bcrypt.hash(Math.random().toString(), 12)
+					const newUser = new User({
+						username: rawHistItemObj.username.toLowerCase(),
+						group: group._id,
+						email: rawHistItemObj.username + '@' + process.env.EMAIL_SUFFIX,
+						password
+					})
+					user = await newUser.save()
+					console.log(`New user ${user.username} at group ${group.groupName} was created`)
+				}
+
+				//AUTO-FEED for parameter set
+				const parameterSet = await ParameterSet.findOne({ name: rawHistItemObj.parameterSet })
+				if (!parameterSet) {
+					if (!process.env.AUTOFEED_ON) {
+						const error = new Error('User was not found')
+						throw error
+					}
+					const newParameterSet = new ParameterSet({
+						name: rawHistItemObj.parameterSet,
+						count: 1,
+						availableOn: [
+							{
+								instrument: { name: instrument.name, id: instrument._id }
+							}
+						]
+					})
+
+					await newParameterSet.save()
+					console.log(`New parameter set ${newParameterSet.name} was created`)
+				} else {
+					const instr = parameterSet.availableOn.find(
+						i => i.instrument.id.toString() === instrument._id.toString()
+					)
+					if (!instr) {
+						parameterSet.availableOn.push({
+							instrument: { name: instrument.name, id: instrument._id }
+						})
+					}
+					parameterSet.count++
+					await parameterSet.save()
+				}
+
+				histItem = {
+					...rawHistItemObj,
+					status,
+					expTime,
+					finishedAt: new Date(),
+					instrument: { name: instrument.name, id: instrument._id },
+					group: { name: group.groupName, id: group._id },
+					user: { username: user.username, id: user._id }
+				}
+				const experiment = new Experiment(histItem)
+				await experiment.save()
 			}
-			const experiment = new Experiment(histItem)
-			await experiment.save()
 		}
 
 		//Changing busyUntil to idle if there is no running experiment in the queue
