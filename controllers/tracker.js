@@ -5,7 +5,7 @@ const Instrument = require('../models/instrument')
 const Group = require('../models/group')
 const User = require('../models/user')
 const Experiment = require('../models/experiment')
-const ParameterSet = require('../models/paramterSet')
+const ParameterSet = require('../models/parameterSet')
 
 const runningExperiments = require('../utils/runningExperiments')
 
@@ -32,7 +32,9 @@ const historyKeysArr = [
 //Helper function for sanitation of status and history raw table data array
 const addNewKeys = (rawDataArr, keys) => {
 	//removing first object containing old keys
-	rawDataArr.splice(0, 1)
+	if (rawDataArr) {
+		rawDataArr.splice(0, 1)
+	}
 
 	const newTableData = []
 	//Creating new object for each row using the array of new keys
@@ -153,23 +155,15 @@ exports.updateStatus = async (req, res) => {
 					const newParameterSet = new ParameterSet({
 						name: rawHistItemObj.parameterSet,
 						count: 1,
-						availableOn: [
-							{
-								instrument: { name: instrument.name, id: instrument._id }
-							}
-						]
+						availableOn: [instrument._id]
 					})
 
 					await newParameterSet.save()
 					console.log(`New parameter set ${newParameterSet.name} was created`)
 				} else {
-					const instr = parameterSet.availableOn.find(
-						i => i.instrument.id.toString() === instrument._id.toString()
-					)
+					const instr = parameterSet.availableOn.find(id => id.toString() === instrument._id.toString())
 					if (!instr) {
-						parameterSet.availableOn.push({
-							instrument: { name: instrument.name, id: instrument._id }
-						})
+						parameterSet.availableOn.push(instrument._id)
 					}
 					parameterSet.count++
 					await parameterSet.save()

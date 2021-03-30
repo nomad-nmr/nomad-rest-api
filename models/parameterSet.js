@@ -16,10 +16,8 @@ const parameterSetSchema = new Schema(
 		},
 		availableOn: [
 			{
-				instrument: {
-					name: String,
-					id: { type: Schema.Types.ObjectId, ref: 'Instrument' }
-				}
+				type: Schema.Types.ObjectId,
+				ref: 'Instrument'
 			}
 		],
 		defaultParams: {
