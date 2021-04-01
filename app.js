@@ -11,6 +11,9 @@ const app = express()
 
 const User = require('./models/user')
 const Group = require('./models/group')
+const Instrument = require('./models/instrument')
+const Submitter = require('./submitter')
+
 const trackerRoutes = require('./routes/tracker')
 const instrumentsRoutes = require('./routes/admin/insruments')
 const dashRoutes = require('./routes/dashboard')
@@ -19,6 +22,7 @@ const usersRoutes = require('./routes/admin/users')
 const groupsRoutes = require('./routes/admin/groups')
 const historyRoutes = require('./routes/admin/expHistory')
 const paramSetsRoutes = require('./routes/admin/parameterSets')
+const submitRoutes = require('./routes/submit')
 
 app.use(bodyParser.json({ strict: true, limit: '50mb' }))
 app.use(helmet())
@@ -35,6 +39,7 @@ app.use('/tracker', trackerRoutes)
 app.use('/admin/instruments', instrumentsRoutes)
 app.use('/dash', dashRoutes)
 app.use('/auth', authRoutes)
+app.use('/submit', submitRoutes)
 app.use('/admin/users', usersRoutes)
 app.use('/admin/groups', groupsRoutes)
 app.use('/admin/history', historyRoutes)
@@ -90,8 +95,42 @@ mongoose
 				if (process.env.NODE_ENV !== 'production') {
 					console.log('Client connected', socket.id)
 				}
+				//storing socketId in submitter to register instrument client
+				const { instrumentId } = socket.handshake.query
+				if (instrumentId) {
+					submitter.updateSocket(instrumentId, socket.id)
+					updateConnected(instrumentId, true)
+				}
+				//updating submitter state and DB if instrument is disconnected
+				socket.on('disconnect', () => {
+					const { instrumentId } = socket.handshake.query
+					if (instrumentId) {
+						submitter.updateSocket(instrumentId)
+						updateConnected(instrumentId, false)
+					}
+				})
 			})
 		} catch (error) {
 			console.log(error)
 		}
 	})
+
+// Submitter initiation
+const submitter = new Submitter()
+Instrument.find({ isActive: true }, '_id capacity status.statusTable').then(res => {
+	submitter.init(res)
+})
+
+// Helper function that is used to update DB when client is connected or disconnected
+const updateConnected = async (id, connected) => {
+	const instrument = await Instrument.findById(id)
+	instrument.connected = connected
+	await instrument.save()
+}
+
+module.exports.getSubmitter = () => {
+	if (!submitter) {
+		throw new Error('Submitter was not initiated')
+	}
+	return submitter
+}
