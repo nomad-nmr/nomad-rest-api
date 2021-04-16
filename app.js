@@ -117,9 +117,7 @@ mongoose
 
 // Submitter initiation
 const submitter = new Submitter()
-Instrument.find({ isActive: true }, '_id capacity status.statusTable').then(res => {
-	submitter.init(res)
-})
+submitter.init()
 
 // Helper function that is used to update DB when client is connected or disconnected
 const updateConnected = async (id, connected) => {

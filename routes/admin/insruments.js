@@ -7,7 +7,7 @@ const instrumentsController = require('../../controllers/admin/instruments')
 
 const router = express.Router()
 
-router.get('/', auth, authAdmin, instrumentsController.getInstruments)
+router.get('/', auth, instrumentsController.getInstruments)
 
 router.post(
 	'/',

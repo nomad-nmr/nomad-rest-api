@@ -8,6 +8,7 @@ const Experiment = require('../models/experiment')
 const ParameterSet = require('../models/parameterSet')
 
 const runningExperiments = require('../utils/runningExperiments')
+const app = require('../app')
 
 //new keys for status and history data objects
 const statusKeysArr = ['holder', 'status', 'datasetName', 'expNo', 'parameterSet', 'group', 'time', 'title']
@@ -203,6 +204,9 @@ exports.updateStatus = async (req, res) => {
 		}
 
 		const instr = await instrument.save()
+
+		const submitter = app.getSubmitter()
+		submitter.updateUsedHolders(instr._id.toString(), newStatusTabData)
 
 		io.getIO().emit('statusUpdate', { instrId: instr._id, statusSummary: instr.status.summary })
 
