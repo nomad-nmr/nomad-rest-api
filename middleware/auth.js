@@ -3,7 +3,6 @@ const User = require('../models/user')
 
 const auth = async (req, res, next) => {
 	const authHeader = req.get('Authorization')
-
 	if (!authHeader) {
 		return res.status('403').send('Please authenticate')
 	}

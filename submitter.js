@@ -40,12 +40,11 @@ class Submitter {
 			newUsedHolders.add(+entry.holder)
 		})
 		this.state.set(instrId, { ...instr, usedHolders: newUsedHolders })
-		// console.log(this.state.get(instrId))
 	}
 
-	cancelBookedHolders(instrId, holders) {
+	cancelBookedHolder(instrId, holder) {
 		const instr = this.state.get(instrId)
-		const newBookedHolders = instr.bookedHolders.filter(bh => !holders.includes(bh))
+		const newBookedHolders = instr.bookedHolders.filter(bh => bh.toString() !== holder.toString())
 		this.state.set(instrId, { ...instr, bookedHolders: newBookedHolders })
 	}
 }
