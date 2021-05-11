@@ -9,7 +9,7 @@ const ParameterSet = require('../../models/parameterSet')
 
 const router = express.Router()
 
-router.get('/', auth, authAdmin, paramSetsController.getParamSets)
+router.get('/', auth, paramSetsController.getParamSets)
 
 router.post(
 	'/',

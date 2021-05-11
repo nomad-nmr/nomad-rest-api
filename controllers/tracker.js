@@ -8,6 +8,7 @@ const Experiment = require('../models/experiment')
 const ParameterSet = require('../models/parameterSet')
 
 const runningExperiments = require('../utils/runningExperiments')
+const app = require('../app')
 
 //new keys for status and history data objects
 const statusKeysArr = ['holder', 'status', 'datasetName', 'expNo', 'parameterSet', 'group', 'time', 'title']
@@ -38,16 +39,18 @@ const addNewKeys = (rawDataArr, keys) => {
 
 	const newTableData = []
 	//Creating new object for each row using the array of new keys
-	rawDataArr.forEach(row => {
-		const values = Object.values(row)
-		let newRowObj = keys.reduce((o, key, index) => ({ ...o, [key]: values[index] }), {})
+	if (rawDataArr) {
+		rawDataArr.forEach(row => {
+			const values = Object.values(row)
+			let newRowObj = keys.reduce((o, key, index) => ({ ...o, [key]: values[index] }), {})
 
-		// Extracting username from dataset name
-		// TODO: username could be extracted from title (originator item in IconNMR). Allow to change through instrument settings
-		newRowObj = { ...newRowObj, username: newRowObj.datasetName.split('-')[3] }
+			// Extracting username from dataset name
+			// TODO: username could be extracted from title (originator item in IconNMR). Allow to change through instrument settings
+			newRowObj = { ...newRowObj, username: newRowObj.datasetName.split('-')[3] }
 
-		newTableData.push(newRowObj)
-	})
+			newTableData.push(newRowObj)
+		})
+	}
 
 	return newTableData
 }
@@ -119,19 +122,19 @@ exports.updateStatus = async (req, res) => {
 				let group = await Group.findOne({ groupName: rawHistItemObj.group })
 				if (!group) {
 					if (!process.env.AUTOFEED_ON) {
-						const error = new Error('Group was not found')
+						const error = new Error('AUTO-FEED: Group was not found')
 						throw error
 					}
 					const newGroup = new Group({ groupName: rawHistItemObj.group.toLowerCase() })
 					group = await newGroup.save()
-					console.log(`New group ${group.groupName} was created`)
+					console.log(`AUTO-FEED: New group ${group.groupName} was created`)
 				}
 
 				//AUTO-FEED for user
 				let user = await User.findOne({ username: rawHistItemObj.username })
 				if (!user) {
 					if (!process.env.AUTOFEED_ON) {
-						const error = new Error('User was not found')
+						const error = new Error('AUTO-FEED: User was not found')
 						throw error
 					}
 					const password = await bcrypt.hash(Math.random().toString(), 12)
@@ -149,7 +152,7 @@ exports.updateStatus = async (req, res) => {
 				const parameterSet = await ParameterSet.findOne({ name: rawHistItemObj.parameterSet })
 				if (!parameterSet) {
 					if (!process.env.AUTOFEED_ON) {
-						const error = new Error('User was not found')
+						const error = new Error('AUTO-FEED: Parameter set was not found')
 						throw error
 					}
 					const newParameterSet = new ParameterSet({
@@ -159,7 +162,7 @@ exports.updateStatus = async (req, res) => {
 					})
 
 					await newParameterSet.save()
-					console.log(`New parameter set ${newParameterSet.name} was created`)
+					console.log(`AUTO-FEED: New parameter set ${newParameterSet.name} was created`)
 				} else {
 					const instr = parameterSet.availableOn.find(id => id.toString() === instrument._id.toString())
 					if (!instr) {
@@ -201,6 +204,9 @@ exports.updateStatus = async (req, res) => {
 		}
 
 		const instr = await instrument.save()
+
+		const submitter = app.getSubmitter()
+		submitter.updateUsedHolders(instr._id.toString(), newStatusTabData)
 
 		io.getIO().emit('statusUpdate', { instrId: instr._id, statusSummary: instr.status.summary })
 

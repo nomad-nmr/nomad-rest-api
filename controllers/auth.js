@@ -9,6 +9,8 @@ const transporter = require('../utils/emailTransporter')
 exports.postLogin = async (req, res) => {
 	try {
 		const user = await User.findOne({ username: req.body.username })
+		await user.populate('group').execPopulate()
+
 		if (!user) {
 			return res.status(400).send('Wrong username or password')
 		}
@@ -25,6 +27,7 @@ exports.postLogin = async (req, res) => {
 		return res.send({
 			username: user.username,
 			accessLevel: user.accessLevel,
+			groupName: user.group.groupName,
 			token: token,
 			expiresIn: process.env.JWT_EXPIRATION
 		})

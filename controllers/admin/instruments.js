@@ -10,7 +10,7 @@ exports.getInstruments = async (req, res) => {
 		const instrumentsData = await Instrument.find(searchParams, '-status')
 		if (req.query.list === 'true') {
 			const instrList = instrumentsData.map(instr => {
-				return { name: instr.name, id: instr._id }
+				return { name: instr.name, id: instr._id, available: instr.available }
 			})
 			return res.send(instrList)
 		}
