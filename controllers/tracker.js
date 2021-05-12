@@ -131,7 +131,7 @@ exports.updateStatus = async (req, res) => {
 				}
 
 				//AUTO-FEED for user
-				let user = await User.findOne({ username: rawHistItemObj.username })
+				let user = await User.findOne({ username: rawHistItemObj.username.toLowerCase() })
 				if (!user) {
 					if (!process.env.AUTOFEED_ON) {
 						const error = new Error('AUTO-FEED: User was not found')
