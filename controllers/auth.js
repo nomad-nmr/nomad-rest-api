@@ -9,7 +9,6 @@ const transporter = require('../utils/emailTransporter')
 exports.postLogin = async (req, res) => {
 	try {
 		const user = await User.findOne({ username: req.body.username })
-		await user.populate('group').execPopulate()
 
 		if (!user) {
 			return res.status(400).send('Wrong username or password')
@@ -17,6 +16,9 @@ exports.postLogin = async (req, res) => {
 		if (!user.isActive) {
 			return res.status(400).send('User is inactive')
 		}
+
+		await user.populate('group').execPopulate()
+
 		const passMatch = await bcrypt.compare(req.body.password, user.password)
 		if (!passMatch) {
 			return res.status(400).send('Wrong username or password')

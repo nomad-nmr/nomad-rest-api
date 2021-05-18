@@ -5,14 +5,18 @@ const submitControllers = require('../controllers/submit')
 
 const router = express.Router()
 
-router.post('/book', auth, submitControllers.postSubmission)
+router.post('/holders', auth, submitControllers.postBookHolders)
 
-router.post('/book-holders', auth, submitControllers.postBookHolders)
+router.delete('/holders', auth, submitControllers.deleteHolders)
 
-router.delete('/book-holders', auth, submitControllers.deleteBooked)
+router.delete('/holder/:key', auth, submitControllers.deleteHolder)
 
-router.delete('/cancel-holder/:key', auth, submitControllers.cancelBooked)
+router.post('/experiments', auth, submitControllers.postSubmission)
 
-router.delete('/delete-holders/:instrId', auth, submitControllers.deleteHolders)
+router.delete('/experiments/:instrId', auth, submitControllers.deleteExps)
+
+router.post('/pending/:type', auth, submitControllers.postPending)
+
+router.post('/pending-auth/:type', submitControllers.postPending)
 
 module.exports = router
