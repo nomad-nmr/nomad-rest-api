@@ -84,7 +84,7 @@ exports.getStatusTable = async (req, res) => {
 
 exports.getDrawerTable = async (req, res) => {
 	try {
-		const data = await Instrument.find({}, 'available name status.statusTable status.historyTable')
+		const data = await Instrument.find({}, '_id available name status.statusTable status.historyTable')
 		if (!data) {
 			return res.status(404).send()
 		}
@@ -96,23 +96,51 @@ exports.getDrawerTable = async (req, res) => {
 
 		data.forEach(i => {
 			let filteredArray = []
-			//getting only "pending" entries for available instruments
-			if (statusId !== 'available' || (statusId === 'available' && i.available)) {
-				filteredArray = i.status.statusTable
-					.filter(row => row.status.toLowerCase() === statusId.toLowerCase())
-					.map(row => {
-						const histObject = i.status.historyTable.find(
-							i => row.datasetName === i.datasetName && row.expNo === i.expNo
-						)
-						if (histObject) {
-							return { ...row, instrument: i.name, description: histObject.remarks }
-						} else {
-							return { ...row, instrument: i.name }
+			let respArrayChunk = []
+
+			filteredArray = i.status.statusTable.filter(
+				row => row.status.toLowerCase() === statusId.toLowerCase()
+			)
+
+			if (req.params.id === 'errors') {
+				respArrayChunk = filteredArray.map(row => {
+					const histObject = i.status.historyTable.find(
+						i => row.datasetName === i.datasetName && row.expNo === i.expNo
+					)
+					if (histObject) {
+						return { ...row, description: histObject.remarks }
+					} else {
+						return row
+					}
+				})
+			} else if (req.params.id === 'pending') {
+				let expCount = 0
+				let newRow = {}
+				filteredArray.forEach((row, index) => {
+					const prevRow = filteredArray[index - 1]
+					const nextRow = filteredArray[index + 1]
+
+					if (index === 0 || prevRow.datasetName !== row.datasetName) {
+						expCount = 1
+					}
+					if (!nextRow || nextRow.datasetName !== row.datasetName) {
+						newRow = {
+							...row,
+							title: row.title.split('@#')[0],
+							instrId: i._id,
+							expCount
 						}
-					})
+						delete newRow.expNo
+						delete newRow.parameterSet
+						respArrayChunk.push(newRow)
+					}
+					expCount++
+				})
+			} else {
+				respArrayChunk = filteredArray
 			}
 
-			respArray = respArray.concat(filteredArray)
+			respArray = respArray.concat(respArrayChunk.map(row => ({ ...row, instrument: i.name })))
 		})
 
 		res.send(respArray)

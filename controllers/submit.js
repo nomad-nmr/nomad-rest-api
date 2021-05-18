@@ -1,10 +1,12 @@
 const moment = require('moment')
+const bcrypt = require('bcryptjs')
 
 const io = require('../socket')
 const app = require('../app')
 const Instrument = require('../models/instrument')
 const Group = require('../models/group')
 const ParameterSet = require('../models/parameterSet')
+const User = require('../models/user')
 
 exports.postSubmission = async (req, res) => {
 	try {
@@ -96,7 +98,7 @@ exports.postBookHolders = async (req, res) => {
 	}
 }
 
-exports.deleteBooked = (req, res) => {
+exports.deleteHolders = (req, res) => {
 	const submitter = app.getSubmitter()
 	try {
 		//Keeping holders booked for 2 mins to allow them to get registered in usedHolders from status table
@@ -114,7 +116,7 @@ exports.deleteBooked = (req, res) => {
 	}
 }
 
-exports.cancelBooked = (req, res) => {
+exports.deleteHolder = (req, res) => {
 	try {
 		const submitter = app.getSubmitter()
 		const instrumentId = req.params.key.split('-')[0]
@@ -127,7 +129,7 @@ exports.cancelBooked = (req, res) => {
 	}
 }
 
-exports.deleteHolders = (req, res) => {
+exports.deleteExps = (req, res) => {
 	try {
 		const submitter = app.getSubmitter()
 		const { socketId } = submitter.state.get(req.params.instrId)
@@ -144,6 +146,43 @@ exports.deleteHolders = (req, res) => {
 		console.log(error)
 		res.status(500).send()
 	}
+}
+
+exports.postPending = async (req, res) => {
+	const path = req.path.split('/')[1]
+	const { data, username, password } = req.body
+
+	try {
+		const submitter = app.getSubmitter()
+
+		//If path is pending-auth authentication takes place
+		if (path === 'pending-auth') {
+			const user = await User.findOne({ username })
+
+			if (!user) {
+				return res.status(400).send('Wrong username or password')
+			}
+			const passMatch = await bcrypt.compare(password, user.password)
+			if (!passMatch) {
+				return res.status(400).send('Wrong username or password')
+			}
+		}
+
+		for (let instrId in data) {
+			const { socketId } = submitter.state.get(instrId)
+
+			if (!socketId) {
+				console.log('Error: Client disconnected')
+				return res.status(503).send({ error: 'Client disconnected' })
+			}
+
+			io.getIO().to(socketId).emit(req.params.type, JSON.stringify(data[instrId]))
+		}
+	} catch (error) {
+		console.log(error)
+		res.status(500).send()
+	}
+	res.send()
 }
 
 //Helper function that returns array of array of available holders
