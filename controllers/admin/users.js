@@ -50,6 +50,13 @@ exports.getUsers = async (req, res) => {
 			res.status(404).send()
 		}
 
+		if (req.query.list === 'true') {
+			const userList = users.map(usr => {
+				return { username: usr.username, id: usr._id, fullName: usr.fullName }
+			})
+			return res.send(userList)
+		}
+
 		const usersArr = users.map(user => {
 			const inactiveDays = moment().diff(moment(user._doc.lastLogin), 'days')
 			// Math.floor(

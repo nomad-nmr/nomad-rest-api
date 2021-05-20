@@ -10,9 +10,14 @@ const User = require('../models/user')
 
 exports.postSubmission = async (req, res) => {
 	try {
-		const group = await Group.findById(req.user.group, 'groupName')
+		const { userId } = req.params
+
+		const user = userId ? await User.findById(userId) : req.user
+		await user.populate('group').execPopulate()
+
+		const groupName = user.group.groupName
+		const username = user.username
 		const instrIds = await Instrument.find({}, '_id')
-		const { username } = req.user
 
 		const submitData = {}
 		for (let sampleKey in req.body) {
@@ -38,7 +43,7 @@ exports.postSubmission = async (req, res) => {
 			const { night, solvent, title } = req.body[sampleKey]
 			const sampleData = {
 				userId: req.user._id,
-				group: group.groupName,
+				group: groupName,
 				holder,
 				sampleId: moment().format('YYMMDDhhmm') + '-' + instrIndex + '-' + holder + '-' + username,
 				solvent,
