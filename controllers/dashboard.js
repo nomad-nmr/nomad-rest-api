@@ -126,7 +126,7 @@ exports.getDrawerTable = async (req, res) => {
 					if (!nextRow || nextRow.datasetName !== row.datasetName) {
 						newRow = {
 							...row,
-							title: row.title.split('@#')[0],
+							title: row.title.split('||')[0],
 							instrId: i._id,
 							expCount
 						}

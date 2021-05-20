@@ -11,7 +11,7 @@ router.delete('/holders', auth, submitControllers.deleteHolders)
 
 router.delete('/holder/:key', auth, submitControllers.deleteHolder)
 
-router.post('/experiments', auth, submitControllers.postSubmission)
+router.post('/experiments/:userId', auth, submitControllers.postSubmission)
 
 router.delete('/experiments/:instrId', auth, submitControllers.deleteExps)
 
