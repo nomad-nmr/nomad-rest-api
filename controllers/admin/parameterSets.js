@@ -73,10 +73,13 @@ const convertInputData = input => {
 	for (const [key, value] of Object.entries(input.defaultParams)) {
 		defaultParamsArr.push({ name: key, value })
 	}
-	const customParamsArr = input.customParams.map(param => ({
-		...param,
-		name: param.name.toLowerCase()
-	}))
+	const customParamsArr = input.customParams
+		? input.customParams.map(param => ({
+				...param,
+				name: param.name.toLowerCase()
+		  }))
+		: []
+
 	const output = {
 		...input,
 		defaultParams: defaultParamsArr,

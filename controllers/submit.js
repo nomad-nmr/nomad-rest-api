@@ -7,12 +7,14 @@ const Instrument = require('../models/instrument')
 const Group = require('../models/group')
 const ParameterSet = require('../models/parameterSet')
 const User = require('../models/user')
+const { postParamSet } = require('./admin/parameterSets')
 
 exports.postSubmission = async (req, res) => {
 	try {
 		const { userId } = req.params
 
-		const user = userId ? await User.findById(userId) : req.user
+		const user = userId === 'undefined' ? req.user : await User.findById(userId)
+
 		await user.populate('group').execPopulate()
 
 		const groupName = user.group.groupName
