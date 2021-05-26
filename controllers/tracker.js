@@ -208,7 +208,7 @@ exports.updateStatus = async (req, res) => {
 		const submitter = app.getSubmitter()
 		submitter.updateUsedHolders(instr._id.toString(), newStatusTabData)
 
-		io.getIO().emit('statusUpdate', { instrId: instr._id, statusSummary: instr.status.summary })
+		io.getIO().to('users').emit('statusUpdate', { instrId: instr._id, statusSummary: instr.status.summary })
 
 		res.status(201).send()
 	} catch (err) {
