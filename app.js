@@ -100,6 +100,8 @@ mongoose
 				if (instrumentId) {
 					submitter.updateSocket(instrumentId, socket.id)
 					updateConnected(instrumentId, true)
+				} else {
+					socket.join('users')
 				}
 				//updating submitter state and DB if instrument is disconnected
 				socket.on('disconnect', () => {

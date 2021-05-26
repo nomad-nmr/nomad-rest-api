@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator')
 const Instrument = require('../../models/instrument')
+const io = require('../../socket')
 
 exports.getInstruments = async (req, res) => {
 	const searchParams = { isActive: true }
@@ -14,6 +15,7 @@ exports.getInstruments = async (req, res) => {
 			})
 			return res.send(instrList)
 		}
+
 		res.send(instrumentsData)
 	} catch (err) {
 		console.log(err)
@@ -61,7 +63,8 @@ exports.toggleAvailable = async (req, res) => {
 		}
 		instrument.available = !instrument.available
 		const updatedInstrument = await instrument.save()
-		res.send({ message: 'Instrument available status updated', _id: updatedInstrument._id })
+		io.getIO().to('users').emit('availableUpdate', { _id: updatedInstrument._id })
+		res.send()
 	} catch (err) {
 		console.log(err)
 		res.status(500).send(err)
