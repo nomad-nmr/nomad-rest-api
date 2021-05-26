@@ -66,7 +66,7 @@ exports.postPasswdReset = async (req, res) => {
 		res.send({ username: user.username, email: user.email })
 	} catch (error) {
 		console.log(error)
-		res.status(500).send(error)
+		res.status(400).send(`Can't send the email to ${error}`)
 	}
 }
 
