@@ -58,9 +58,8 @@ exports.postPasswdReset = async (req, res) => {
 			subject: 'NOMAD-3 password reset ',
 			html: `<p>Dear user ${user.fullName ? user.fullName : user.username}</p>
 			<p>Use the link bellow to reset your NOMAD-3 password or register a new account</p>
-			<p><a>${process.env.FRONT_HOST_URL}/reset/${token}</p>
+			<p><a href="${process.env.FRONT_HOST_URL}/reset/${token}">Reset Password Link</a></p>
 			<p>Please note that the link is valid for ${+process.env.JWT_EXPIRATION / 60} minutes only</p>
-			<p>If the link does not work try to copy&pate URL into your browser.</p>
 			`
 		})
 		res.send({ username: user.username, email: user.email })

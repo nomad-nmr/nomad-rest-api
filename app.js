@@ -23,6 +23,7 @@ const groupsRoutes = require('./routes/admin/groups')
 const historyRoutes = require('./routes/admin/expHistory')
 const paramSetsRoutes = require('./routes/admin/parameterSets')
 const submitRoutes = require('./routes/submit')
+const messageRoutes = require('./routes/admin/message')
 
 app.use(bodyParser.json({ strict: true, limit: '50mb' }))
 app.use(helmet())
@@ -44,6 +45,8 @@ app.use('/admin/users', usersRoutes)
 app.use('/admin/groups', groupsRoutes)
 app.use('/admin/history', historyRoutes)
 app.use('/admin/param-sets', paramSetsRoutes)
+app.use('/admin/message', messageRoutes)
+
 app.use((req, res) => {
 	res.status(404).send()
 })
