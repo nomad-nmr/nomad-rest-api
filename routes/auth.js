@@ -23,10 +23,10 @@ router.post(
 			.withMessage('Full name minimum length is 3 and maximum length is 50'),
 		body(
 			'password',
-			'Password must have minimum eight characters, at least one letter, one number and one special character'
+			'Password must have minimum eight characters, at least one uppercase letter, one lowercase letter and one number.'
 		)
 			.trim()
-			.matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/, 'i'),
+			.matches(/^(?=.*?[a-z])(?=.*?[A-Z])(?=.*?[0-9]).{8,}$/, 'i'),
 		body('confirmPass').custom((value, { req }) => {
 			if (value !== req.body.password) {
 				throw new Error('Passwords do not match!')
