@@ -63,13 +63,15 @@ exports.getStatusTable = async (req, res) => {
 					.add(moment.duration(row.time))
 					.format('HH:mm:ss', { trim: false })
 
-				if (row.status === 'Error') {
-					newRow.status = 'Error'
-				} else if (row.status === 'Running' || row.status === 'Submitted') {
+				if (row.status === 'Error' || row.status === 'Running') {
 					newRow.status = row.status
+				} else if (row.status === 'Submitted' && newRow.status === 'Completed') {
+					newRow.status = 'Submitted'
 				}
 			}
+
 			newRow.exps.push(newExp)
+
 			if (!nextRow || nextRow.datasetName !== row.datasetName) {
 				tableData.push(newRow)
 			}
