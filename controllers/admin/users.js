@@ -65,7 +65,7 @@ exports.getUsers = async (req, res) => {
 
 			const newUser = {
 				...user._doc,
-				lastLogin: user._doc.lastLogin ? moment(user._doc.lastLogin).format('DD MMM YYYY, h:mm') : '-',
+				lastLogin: user._doc.lastLogin ? moment(user._doc.lastLogin).format('DD MMM YYYY, HH:mm') : '-',
 				inactiveDays: user._doc.lastLogin ? moment().diff(moment(user._doc.lastLogin), 'days') : '-'
 				// inactiveDays.toString() !== 'NaN' ? inactiveDays : '-'
 			}
@@ -138,7 +138,7 @@ exports.updateUser = async (req, res) => {
 		}
 		delete user.password
 		delete user.tokens
-		const lastLogin = user._doc.lastLogin ? moment(user._doc.lastLogin).format('DD MMM YYYY, h:mm') : '-'
+		const lastLogin = user._doc.lastLogin ? moment(user._doc.lastLogin).format('DD MMM YYYY, HH:mm') : '-'
 		const inactiveDays = user._doc.lastLogin ? moment().diff(moment(user._doc.lastLogin), 'days') : '-'
 		res.status(201).send({ ...user._doc, lastLogin, inactiveDays })
 	} catch (error) {
