@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator')
 const Instrument = require('../../models/instrument')
 const io = require('../../socket')
+const app = require('../../app')
 
 exports.getInstruments = async (req, res) => {
 	const searchParams = { isActive: true }
@@ -14,9 +15,14 @@ exports.getInstruments = async (req, res) => {
 				return { name: instr.name, id: instr._id, available: instr.available }
 			})
 			return res.send(instrList)
+		} else {
+			const completeInstrData = instrumentsData.map(instr => {
+				const isConnected = app.getSubmitter().isConnected(instr._id.toString())
+				return { ...instr._doc, isConnected }
+			})
+			console.log(completeInstrData)
+			res.send(completeInstrData)
 		}
-
-		res.send(instrumentsData)
 	} catch (err) {
 		console.log(err)
 		res.status(500).send(err)
