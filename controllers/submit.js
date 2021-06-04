@@ -146,7 +146,6 @@ exports.deleteExps = (req, res) => {
 
 exports.putReset = async (req, res) => {
 	const { instrId } = req.params
-	console.log('Huuu')
 	try {
 		const submitter = app.getSubmitter()
 		const instrument = await Instrument.findById(instrId, 'status.statusTable')

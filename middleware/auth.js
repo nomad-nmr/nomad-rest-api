@@ -13,7 +13,12 @@ const auth = async (req, res, next) => {
 		if (decoded) {
 			const user = await User.findOne({ _id: decoded._id, 'tokens.token': token })
 			if (!user) {
-				throw new Error()
+				if (req.body.timeOut) {
+					//request comes from checkAuthTimeout and user has logged out already
+					return res.send()
+				} else {
+					throw new Error()
+				}
 			}
 			req.user = user
 			req.token = token
