@@ -20,7 +20,6 @@ exports.getInstruments = async (req, res) => {
 				const isConnected = app.getSubmitter().isConnected(instr._id.toString())
 				return { ...instr._doc, isConnected }
 			})
-			console.log(completeInstrData)
 			res.send(completeInstrData)
 		}
 	} catch (err) {

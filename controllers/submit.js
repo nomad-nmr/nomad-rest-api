@@ -4,14 +4,13 @@ const bcrypt = require('bcryptjs')
 const io = require('../socket')
 const app = require('../app')
 const Instrument = require('../models/instrument')
-const Group = require('../models/group')
 const ParameterSet = require('../models/parameterSet')
 const User = require('../models/user')
-const { postParamSet } = require('./admin/parameterSets')
 
 exports.postSubmission = async (req, res) => {
 	try {
 		const { userId } = req.params
+		const submitter = app.getSubmitter()
 
 		const user = userId === 'undefined' ? req.user : await User.findById(userId)
 
@@ -63,7 +62,6 @@ exports.postSubmission = async (req, res) => {
 
 		for (let instrumentId in submitData) {
 			//Getting socketId from submitter state
-			const submitter = app.getSubmitter()
 			const { socketId } = submitter.state.get(instrumentId)
 
 			if (!socketId) {
@@ -83,8 +81,8 @@ exports.postSubmission = async (req, res) => {
 
 exports.postBookHolders = async (req, res) => {
 	try {
-		const { instrumentId, count } = req.body
 		const submitter = app.getSubmitter()
+		const { instrumentId, count } = req.body
 		const { usedHolders, bookedHolders } = submitter.state.get(instrumentId)
 
 		if (!usedHolders || !bookedHolders) {
@@ -106,8 +104,8 @@ exports.postBookHolders = async (req, res) => {
 }
 
 exports.deleteHolders = (req, res) => {
-	const submitter = app.getSubmitter()
 	try {
+		const submitter = app.getSubmitter()
 		//Keeping holders booked for 2 mins to allow them to get registered in usedHolders from status table
 		//after experiments been booked
 		setTimeout(() => {
@@ -138,17 +136,31 @@ exports.deleteHolder = (req, res) => {
 
 exports.deleteExps = (req, res) => {
 	try {
-		const submitter = app.getSubmitter()
-		const { socketId } = submitter.state.get(req.params.instrId)
+		emitDeleteExps(req.params.instrId, req.body)
+		res.send()
+	} catch (error) {
+		console.log(error)
+		res.status(500).send()
+	}
+}
 
-		if (!socketId) {
-			console.log('Error: Client disconnected')
-			return res.status(503).send({ error: 'Client disconnected' })
+exports.putReset = async (req, res) => {
+	const { instrId } = req.params
+	console.log('Huuu')
+	try {
+		const submitter = app.getSubmitter()
+		const instrument = await Instrument.findById(instrId, 'status.statusTable')
+		if (!instrument) {
+			return res.status(404).send('Instrument not found')
 		}
 
-		io.getIO().to(socketId).emit('delete', JSON.stringify(req.body))
+		const holders = instrument.status.statusTable
+			.filter(row => row.status === 'Completed' || row.status === 'Error')
+			.map(row => row.holder)
 
-		res.send()
+		submitter.resetBookedHolders(instrId)
+		emitDeleteExps(instrId, holders)
+		res.send(holders)
 	} catch (error) {
 		console.log(error)
 		res.status(500).send()
@@ -161,7 +173,6 @@ exports.postPending = async (req, res) => {
 
 	try {
 		const submitter = app.getSubmitter()
-
 		//If path is pending-auth authentication takes place
 		if (path === 'pending-auth') {
 			const user = await User.findOne({ username })
@@ -203,4 +214,17 @@ const findAvailableHolders = (usedHolders, capacity, count) => {
 			return holders
 		}
 	}
+}
+
+//Helper function that sends array of holders to be deleted to the client
+const emitDeleteExps = (instrId, holders) => {
+	const submitter = app.getSubmitter()
+	const { socketId } = submitter.state.get(instrId)
+
+	if (!socketId) {
+		console.log('Error: Client disconnected')
+		return res.status(503).send({ error: 'Client disconnected' })
+	}
+
+	io.getIO().to(socketId).emit('delete', JSON.stringify(holders))
 }

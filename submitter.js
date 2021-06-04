@@ -58,6 +58,11 @@ class Submitter {
 		const newBookedHolders = instr.bookedHolders.filter(bh => bh.toString() !== holder.toString())
 		this.state.set(instrId, { ...instr, bookedHolders: newBookedHolders })
 	}
+
+	resetBookedHolders(instrId) {
+		const instr = this.state.get(instrId)
+		this.state.set(instrId, { ...instr, bookedHolders: [] })
+	}
 }
 
 module.exports = Submitter
