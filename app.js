@@ -102,7 +102,6 @@ mongoose
 				const { instrumentId } = socket.handshake.query
 				if (instrumentId) {
 					submitter.updateSocket(instrumentId, socket.id)
-					updateConnected(instrumentId, true)
 				} else {
 					socket.join('users')
 				}
@@ -111,7 +110,6 @@ mongoose
 					const { instrumentId } = socket.handshake.query
 					if (instrumentId) {
 						submitter.updateSocket(instrumentId)
-						updateConnected(instrumentId, false)
 					}
 				})
 			})
@@ -123,13 +121,6 @@ mongoose
 // Submitter initiation
 const submitter = new Submitter()
 submitter.init()
-
-// Helper function that is used to update DB when client is connected or disconnected
-const updateConnected = async (id, connected) => {
-	const instrument = await Instrument.findById(id)
-	instrument.connected = connected
-	await instrument.save()
-}
 
 module.exports.getSubmitter = () => {
 	if (!submitter) {

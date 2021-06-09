@@ -17,10 +17,6 @@ const instrumentSchema = new Schema({
 		type: Boolean,
 		default: false
 	},
-	connected: {
-		type: Boolean,
-		default: false
-	},
 	isActive: {
 		type: Boolean,
 		required: true,

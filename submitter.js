@@ -28,6 +28,17 @@ class Submitter {
 		this.state.set(instrId, { ...instr, socketId })
 	}
 
+	isConnected(instrId) {
+		const instr = this.state.get(instrId)
+		if (instr) {
+			if (instr.socketId) {
+				return true
+			} else {
+				return false
+			}
+		}
+	}
+
 	updateBookedHolders(instrId, holders) {
 		const instr = this.state.get(instrId)
 		this.state.set(instrId, { ...instr, bookedHolders: instr.bookedHolders.concat(holders) })
@@ -46,6 +57,11 @@ class Submitter {
 		const instr = this.state.get(instrId)
 		const newBookedHolders = instr.bookedHolders.filter(bh => bh.toString() !== holder.toString())
 		this.state.set(instrId, { ...instr, bookedHolders: newBookedHolders })
+	}
+
+	resetBookedHolders(instrId) {
+		const instr = this.state.get(instrId)
+		this.state.set(instrId, { ...instr, bookedHolders: [] })
 	}
 }
 
