@@ -1,4 +1,4 @@
-const Instrument = require('../models/instrument')
+const Instrument = require('../../models/instrument')
 
 const runningExperiments = {
 	//runningExperiments.state is array of object holding information about datasetName and ExpNo of an experiment running on each machine

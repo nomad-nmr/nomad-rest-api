@@ -6,12 +6,12 @@ exports.getHistory = async (req, res) => {
 	try {
 		const experiments = await Experiment.find({
 			'instrument.id': req.params.instrId,
-			finishedAt: {
+			updatedAt: {
 				$gte: date,
 				$lt: new Date(moment(date).add(1, 'd').format('YYYY-MM-DD'))
 			}
 		})
-			.sort({ finishedAt: 'desc' })
+			.sort({ updatedAt: 'desc' })
 			.populate('user.id', 'fullName')
 			.exec()
 
