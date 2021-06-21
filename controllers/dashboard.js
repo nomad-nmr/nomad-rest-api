@@ -38,13 +38,15 @@ exports.getStatusTable = async (req, res) => {
 			const prevRow = filteredData[index - 1]
 			const nextRow = filteredData[index + 1]
 
-			let newExp = {
+			const newExp = {
 				key: row.expNo,
 				expNo: row.expNo,
 				parameterSet: row.parameterSet,
+				parameters: row.parameters,
 				title: row.title,
 				expT: row.time,
-				status: row.status
+				status: row.status,
+				updatedAt: row.updatedAt
 			}
 
 			if (index === 0 || prevRow.datasetName !== row.datasetName) {
@@ -54,8 +56,11 @@ exports.getStatusTable = async (req, res) => {
 				newRow.username = row.username
 				newRow.group = row.group
 				newRow.datasetName = row.datasetName
+				newRow.solvent = row.solvent
 				newRow.time = row.time
+				newRow.night = row.night
 				newRow.status = row.status
+				newRow.submittedAt = row.submittedAt
 				newRow.exps = []
 			} else {
 				newRow.time = moment

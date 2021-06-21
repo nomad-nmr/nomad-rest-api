@@ -3,6 +3,7 @@ const io = require('../../socket')
 const Instrument = require('../../models/instrument')
 const restructureInput = require('./restructureInput')
 const expHistAutoFeed = require('./expHistAutoFeed')
+const updateStatus = require('./updateStatus')
 const app = require('../../app')
 
 exports.ping = async (req, res) => {
@@ -25,7 +26,12 @@ exports.updateStatus = async (req, res) => {
 		const newStatusObj = restructureInput(req.body.data, instrument)
 
 		if (process.env.SUBMIT_ON === 'true') {
-			console.log('updateStatus')
+			const updatedStatusTable = await updateStatus(
+				instrument,
+				newStatusObj.statusTable,
+				newStatusObj.historyTable
+			)
+			newStatusObj.statusTable = updatedStatusTable
 		} else {
 			await expHistAutoFeed(
 				{ id: instrument._id, name: instrument.name },

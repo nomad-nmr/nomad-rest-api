@@ -47,6 +47,7 @@ const experimentSchema = new Schema(
 		solvent: String,
 		title: { type: String, required: true },
 		night: Boolean,
+		submittedAt: Date,
 		expTime: String,
 		status: { type: String, required: true },
 		remarks: String,
