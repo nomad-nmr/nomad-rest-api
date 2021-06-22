@@ -14,6 +14,7 @@ const updateStatus = async (instrument, statusTable, historyTable) => {
 					i => i.datasetName === entry.datasetName && i.expNo === entry.expNo
 				)
 
+				//
 				if (!oldEntry || oldEntry.status !== entry.status) {
 					//looking for expHistEntry only if status has changed to reduce number of DB queries
 
@@ -25,7 +26,13 @@ const updateStatus = async (instrument, statusTable, historyTable) => {
 					const updateObj = {
 						status: entry.status,
 						expTime: entry.time,
-						remarks: historyTableItem && historyTableItem.remarks
+						load: historyTableItem && historyTableItem.load,
+						atma: historyTableItem && historyTableItem.atma,
+						spin: historyTableItem && historyTableItem.spin,
+						lock: historyTableItem && historyTableItem.lock,
+						shim: historyTableItem && historyTableItem.shim,
+						proc: historyTableItem && historyTableItem.proc,
+						acq: historyTableItem && historyTableItem.acq
 					}
 
 					if (submittedAt) {
