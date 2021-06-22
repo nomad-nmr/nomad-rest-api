@@ -15,7 +15,7 @@ exports.getHistory = async (req, res) => {
 			.populate('user.id', 'fullName')
 			.exec()
 
-		res.send(experiments)
+		res.send(experiments.filter(exp => exp.status !== 'Available'))
 	} catch (error) {
 		console.log(error)
 		res.status(500).send()

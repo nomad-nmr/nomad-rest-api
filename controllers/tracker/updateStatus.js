@@ -14,11 +14,6 @@ const updateStatus = async (instrument, statusTable, historyTable) => {
 					i => i.datasetName === entry.datasetName && i.expNo === entry.expNo
 				)
 
-				//Excluding Available/Booked entries
-				if (entry.status === 'Available') {
-					return entry
-				}
-
 				if (!oldEntry || oldEntry.status !== entry.status) {
 					//looking for expHistEntry only if status has changed to reduce number of DB queries
 
