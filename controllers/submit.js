@@ -6,6 +6,8 @@ const app = require('../app')
 const Instrument = require('../models/instrument')
 const ParameterSet = require('../models/parameterSet')
 const User = require('../models/user')
+const Experiment = require('../models/experiment')
+const expHistAutoFeed = require('./tracker/expHistAutoFeed')
 
 exports.postSubmission = async (req, res) => {
 	try {
@@ -42,11 +44,12 @@ exports.postSubmission = async (req, res) => {
 				})
 			}
 			const { night, solvent, title } = req.body[sampleKey]
+			const sampleId = moment().format('YYMMDDhhmm') + '-' + instrIndex + '-' + holder + '-' + username
 			const sampleData = {
-				userId: req.user._id,
+				userId: user._id,
 				group: groupName,
 				holder,
-				sampleId: moment().format('YYMMDDhhmm') + '-' + instrIndex + '-' + holder + '-' + username,
+				sampleId,
 				solvent,
 				night,
 				title,
@@ -58,6 +61,40 @@ exports.postSubmission = async (req, res) => {
 			} else {
 				submitData[instrId] = [sampleData]
 			}
+
+			//Storing sample data into experiment history
+			const instrument = await Instrument.findById(instrId, 'name')
+			await Promise.all(
+				sampleData.experiments.map(async exp => {
+					const expHistObj = {
+						expId: sampleId + '-' + exp.expNo,
+						instrument: {
+							name: instrument.name,
+							id: instrId
+						},
+						user: {
+							username,
+							id: user._id
+						},
+						group: {
+							name: groupName,
+							id: user.group._id
+						},
+						datasetName: sampleId,
+						holder,
+						expNo: exp.expNo,
+						solvent,
+						parameterSet: exp.paramSet,
+						parameters: exp.params,
+						title,
+						night,
+						status: 'Booked'
+					}
+					const experiment = new Experiment(expHistObj)
+
+					await experiment.save()
+				})
+			)
 		}
 
 		for (let instrumentId in submitData) {
