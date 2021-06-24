@@ -18,7 +18,6 @@ const updateStatus = async (instrument, statusTable, historyTable) => {
 				if (!oldEntry || oldEntry.status !== entry.status) {
 					//looking for expHistEntry only if status has changed to reduce number of DB queries
 
-					const submittedAt = entry.status === 'Submitted' && new Date()
 					const historyTableItem = historyTable.find(
 						i => i.datasetName === entry.datasetName && i.expNo === entry.expNo
 					)
@@ -26,6 +25,7 @@ const updateStatus = async (instrument, statusTable, historyTable) => {
 					const updateObj = {
 						status: entry.status,
 						expTime: entry.time,
+						remarks: historyTableItem && historyTableItem.remarks,
 						load: historyTableItem && historyTableItem.load,
 						atma: historyTableItem && historyTableItem.atma,
 						spin: historyTableItem && historyTableItem.spin,
@@ -35,8 +35,8 @@ const updateStatus = async (instrument, statusTable, historyTable) => {
 						acq: historyTableItem && historyTableItem.acq
 					}
 
-					if (submittedAt) {
-						updateObj.submittedAt = submittedAt
+					if (entry.status === 'Submitted') {
+						updateObj.submittedAt = new Date()
 					}
 
 					const expHistEntry = await Experiment.findOneAndUpdate({ expId }, updateObj)
