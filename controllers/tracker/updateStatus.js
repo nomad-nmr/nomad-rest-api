@@ -35,8 +35,13 @@ const updateStatus = async (instrument, statusTable, historyTable) => {
 						acq: historyTableItem && historyTableItem.acq
 					}
 
-					if (entry.status === 'Submitted') {
-						updateObj.submittedAt = new Date()
+					
+					//if entry.status === 'Submitted' is used submittedAt is occasionally missing
+					//It might be that entry goes directly to 'Running' status.
+					if (oldEntry) {
+						if (oldEntry.status === 'Available') {
+							updateObj.submittedAt = new Date()
+						}
 					}
 
 					const expHistEntry = await Experiment.findOneAndUpdate({ expId }, updateObj)
