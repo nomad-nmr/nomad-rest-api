@@ -13,6 +13,11 @@ const groupSchema = new Schema(
 
 		description: String,
 
+		isBatch: {
+			type: Boolean,
+			default: false
+		},
+
 		isActive: {
 			type: Boolean,
 			required: true,
@@ -28,6 +33,23 @@ groupSchema.methods.setUsersInactive = async function () {
 	users.forEach(async user => {
 		user.isActive = false
 		await user.save()
+	})
+}
+groupSchema.methods.updateBatchUsers = async function () {
+	const group = this
+	const users = await User.find({ group: group._id })
+	users.forEach(async user => {
+		if (group.isBatch) {
+			if (user.accessLevel !== 'admin-b' || user.accessLevel !== 'user-b') {
+				user.accessLevel = 'user-b'
+				await user.save()
+			}
+		} else {
+			if (user.accessLevel === 'user-b') {
+				user.accessLevel = 'user'
+				await user.save()
+			}
+		}
 	})
 }
 

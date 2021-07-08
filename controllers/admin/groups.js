@@ -17,7 +17,7 @@ exports.getGroups = async (req, res) => {
 
 		if (req.query.list === 'true') {
 			const groupList = groups.map(grp => {
-				return { name: grp.groupName, id: grp._id }
+				return { name: grp.groupName, id: grp._id, isBatch: grp.isBatch }
 			})
 			return res.send(groupList)
 		}
@@ -63,6 +63,8 @@ exports.updateGroup = async (req, res) => {
 		if (!group.isActive) {
 			group.setUsersInactive()
 		}
+		//UpdateBatchUsers is a method that updates accessLevel according to group batch-submit status
+		group.updateBatchUsers()
 
 		const usersCounts = await group.getUserCounts()
 		res.send({ ...group._doc, ...usersCounts })
