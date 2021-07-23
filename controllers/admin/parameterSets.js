@@ -3,7 +3,7 @@ const { validationResult } = require('express-validator')
 const ParameterSet = require('../../models/parameterSet')
 
 exports.getParamSets = async (req, res) => {
-	const { instrumentId, searchValue } = req.query
+	const { instrumentId, searchValue, list } = req.query
 	const searchParams = { $and: [{}] }
 	if (instrumentId !== 'null') {
 		searchParams.$and.push({ availableOn: instrumentId })
@@ -18,6 +18,13 @@ exports.getParamSets = async (req, res) => {
 
 	try {
 		const paramSets = await ParameterSet.find(searchParams).sort({ count: 'desc' })
+		if (list) {
+			const paramSetsList = paramSets.map(paramSet => ({
+				name: paramSet.name,
+				description: paramSet.description
+			}))
+			return res.send(paramSetsList)
+		}
 		res.send(paramSets)
 	} catch (error) {
 		console.log(error)

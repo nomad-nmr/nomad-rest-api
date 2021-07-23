@@ -17,16 +17,18 @@ const rackSchema = new Schema({
 		required: true,
 		default: true
 	},
+	slotsNumber: {
+		type: Number,
+		required: true,
+		default: 72
+	},
 	samples: [
 		{
-			slot: {
-				type: Number,
-				required: true
-			},
+			slot: Number,
 			user: {
-				type: Schema.Types.ObjectId,
-				required: true,
-				ref: 'User'
+				id: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
+				username: String,
+				fullName: String
 			},
 			solvent: {
 				type: String,
@@ -36,13 +38,11 @@ const rackSchema = new Schema({
 				type: String,
 				required: true
 			},
-			experiments: [
-				{
-					type: Schema.Types.ObjectId,
-					ref: 'Experiment'
-				}
-			],
+
+			exps: Array,
+
 			addedAt: Date,
+
 			instrument: {
 				type: Schema.Types.ObjectId,
 				ref: 'Instrument'

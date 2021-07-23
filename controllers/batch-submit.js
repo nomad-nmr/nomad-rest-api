@@ -55,3 +55,32 @@ exports.deleteRack = async (req, res) => {
 		res.status(500).send(error)
 	}
 }
+
+exports.addSample = async (req, res) => {
+	const { rackId } = req.params
+
+	try {
+		const rack = await Rack.findById(rackId)
+		if (!rack) {
+			return res.status(404).send('Rack not found!')
+		}
+		const { samples } = rack
+		samples.sort((a, b) => b - a)
+		const newSlotStart = samples[0] ? samples[0].slot + 1 : 1
+		Object.values(req.body).forEach((sample, index) => {
+			const newSample = {
+				...sample,
+				slot: newSlotStart + index,
+				user: { id: req.user._id, username: req.user.username, fullName: req.user.fullName },
+				addedAt: new Date()
+			}
+			rack.samples.push(newSample)
+		})
+		const updatedRack = await rack.save()
+		updatedRack.populate('user')
+		res.send(updatedRack)
+	} catch (error) {
+		console.log(error)
+		res.status(500).send(error)
+	}
+}
