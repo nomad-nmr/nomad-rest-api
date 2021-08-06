@@ -37,6 +37,8 @@ router.patch('/racks/:rackId', auth, authAdmin, batchSubmitControllers.closeRack
 
 router.delete('/racks/:rackId', auth, authAdmin, batchSubmitControllers.deleteRack)
 
-router.post('/add/:rackId', auth, batchSubmitControllers.addSample)
+router.post('/sample/:rackId', auth, batchSubmitControllers.addSample)
+
+router.delete('/sample/:rackId/:slot', auth, batchSubmitControllers.deleteSample)
 
 module.exports = router

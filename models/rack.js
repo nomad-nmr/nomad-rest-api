@@ -44,11 +44,12 @@ const rackSchema = new Schema({
 			addedAt: Date,
 
 			instrument: {
-				type: Schema.Types.ObjectId,
-				ref: 'Instrument'
+				id: { type: Schema.Types.ObjectId, ref: 'Instrument' },
+				name: String
 			},
 			holder: Number,
-			status: String
+			status: String,
+			dataSetName: String
 		}
 	]
 })

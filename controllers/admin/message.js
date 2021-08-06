@@ -10,7 +10,12 @@ exports.postMessage = async (req, res) => {
 				let users = []
 				switch (entry.type) {
 					case 'user':
-						const user = await User.findById(entry.id)
+						let user = undefined
+						if (entry.id) {
+							user = await User.findById(entry.id)
+						} else {
+							user = await User.findOne({ username: entry.name })
+						}
 						users = [user]
 						break
 

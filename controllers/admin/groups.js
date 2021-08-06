@@ -38,13 +38,13 @@ exports.getGroups = async (req, res) => {
 }
 
 exports.addGroup = async (req, res) => {
-	const { groupName, description } = req.body
+	const { groupName, description, isBatch } = req.body
 	const errors = validationResult(req)
 	try {
 		if (!errors.isEmpty()) {
 			return res.status(422).send(errors)
 		}
-		const group = new Group({ groupName: groupName.toLowerCase(), description })
+		const group = new Group({ groupName: groupName.toLowerCase(), description, isBatch })
 		const newGroup = await group.save()
 		res.status(201).send(newGroup)
 	} catch (error) {
