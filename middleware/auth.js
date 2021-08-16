@@ -29,6 +29,7 @@ const auth = async (req, res, next) => {
 		if (user) {
 			user.removeAuthToken(token)
 		}
+		console.log(error)
 		res.status(403).send('Please authenticate.')
 	}
 }
