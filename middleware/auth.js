@@ -12,13 +12,11 @@ const auth = async (req, res, next) => {
 		const decoded = jwt.verify(token, process.env.JWT_SECRET)
 		if (decoded) {
 			const user = await User.findOne({ _id: decoded._id, 'tokens.token': token })
-			console.log(user)
 			if (!user) {
 				if (req.body.timeOut) {
 					//request comes from checkAuthTimeout and user has logged out already
 					return res.send()
 				} else {
-					console.log('Huuuuu')
 					throw new Error()
 				}
 			}
@@ -31,7 +29,6 @@ const auth = async (req, res, next) => {
 		if (user) {
 			user.removeAuthToken(token)
 		}
-		console.log(error)
 		res.status(403).send('Please authenticate.')
 	}
 }
