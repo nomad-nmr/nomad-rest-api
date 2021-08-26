@@ -265,8 +265,8 @@ exports.submitSamples = async (req, res) => {
     let submitDataObj = {}
     const updatedSamplesArr = [...rack.samples]
     rack.samples.forEach((sample, index) => {
-      const instrId = sample.instrument.id.toString()
       if (slots.includes(sample.slot)) {
+        const instrId = sample.instrument.id.toString()
         if (Object.keys(submitDataObj).includes(instrId)) {
           submitDataObj[instrId].push(sample.holder)
         } else {
@@ -311,14 +311,16 @@ exports.cancelBookedSamples = async (req, res) => {
     let submitDataObj = {}
     const updatedSamplesArr = [...rack.samples]
     rack.samples.forEach((sample, index) => {
-      const instrId = sample.instrument.id.toString()
       if (slots.includes(sample.slot)) {
+        const instrId = sample.instrument.id.toString()
         if (Object.keys(submitDataObj).includes(instrId)) {
           submitDataObj[instrId].push(sample.holder)
         } else {
           submitDataObj[instrId] = [sample.holder]
         }
         updatedSamplesArr[index].status = undefined
+        updatedSamplesArr[index].instrument = undefined
+        updatedSamplesArr[index].holder = undefined
       }
     })
 
