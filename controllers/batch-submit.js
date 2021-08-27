@@ -10,6 +10,36 @@ const io = require('../socket')
 exports.getRacks = async (req, res) => {
   try {
     const racks = await Rack.find({}).populate('group', 'groupName').sort({ isOpen: 'desc' })
+    if (!racks) {
+      return res.status(404).send('Racks not found!')
+    }
+
+    //Updating status of submitted samples
+    await Promise.all(
+      racks.map(async (rack, rackIndex) => {
+        if (!rack.isOpen) {
+          await Promise.all(
+            rack.samples.map(async (sample, sampleIndex) => {
+              if (sample.status === 'Submitted') {
+                let newStatus = 'Submitted'
+                for (let i = 0; i < sample.exps.length; i++) {
+                  const expNo = (10 + i).toString()
+                  const { status } = await Experiment.findOne(
+                    { expId: sample.dataSetName + '-' + expNo },
+                    'status'
+                  )
+                  if (status !== 'Booked' && newStatus !== 'Error' && newStatus !== 'Running') {
+                    newStatus = status
+                  }
+                }
+                racks[rackIndex].samples[sampleIndex].status = newStatus
+              }
+            })
+          )
+        }
+      })
+    )
+
     res.send(racks)
   } catch (error) {
     console.log(error)
