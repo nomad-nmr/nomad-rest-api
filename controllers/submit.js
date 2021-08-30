@@ -45,7 +45,7 @@ exports.postSubmission = async (req, res) => {
       }
       const { night, solvent, title } = req.body[sampleKey]
       const sampleId =
-        moment().format('YYMMDDhhmm') + '-' + instrIndex + '-' + holder + '-' + username
+        moment().format('YYMMDDHHmm') + '-' + instrIndex + '-' + holder + '-' + username
       const sampleData = {
         userId: user._id,
         group: groupName,
@@ -174,7 +174,7 @@ exports.deleteHolder = (req, res) => {
 
 exports.deleteExps = (req, res) => {
   try {
-    emitDeleteExps(req.params.instrId, req.body)
+    emitDeleteExps(req.params.instrId, req.body, res)
     res.send()
   } catch (error) {
     console.log(error)
@@ -196,7 +196,7 @@ exports.putReset = async (req, res) => {
       .map(row => row.holder)
 
     submitter.resetBookedHolders(instrId)
-    emitDeleteExps(instrId, holders)
+    emitDeleteExps(instrId, holders, res)
     res.send(holders)
   } catch (error) {
     console.log(error)
@@ -241,7 +241,7 @@ exports.postPending = async (req, res) => {
 }
 
 //Helper function that sends array of holders to be deleted to the client
-const emitDeleteExps = (instrId, holders) => {
+const emitDeleteExps = (instrId, holders, res) => {
   const submitter = app.getSubmitter()
   const { socketId } = submitter.state.get(instrId)
 

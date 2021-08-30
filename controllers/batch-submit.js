@@ -206,7 +206,7 @@ exports.bookSamples = async (req, res) => {
             sample.status = 'Booked'
             sample.holder = availableHolders[holdersCount]
             sample.dataSetName =
-              moment().format('YYMMDDhhmm') +
+              moment().format('YYMMDDHHmm') +
               '-' +
               instrIndex +
               '-' +
@@ -274,7 +274,10 @@ exports.bookSamples = async (req, res) => {
     }
     io.getIO().to(socketId).emit('book', JSON.stringify(samplesToBook))
 
-    res.send({ rackId: updatedRack._id, samples: updatedRack.samples })
+    res.send({
+      rackId: updatedRack._id,
+      samples: updatedRack.samples.filter(sample => slots.includes(sample.slot))
+    })
   } catch (error) {
     console.log(error.message)
     res.status(500).send(error)
@@ -320,7 +323,10 @@ exports.submitSamples = async (req, res) => {
 
     rack.samples = updatedSamplesArr
     const updatedRack = await rack.save()
-    res.send({ rackId: updatedRack._id, samples: updatedRack.samples })
+    res.send({
+      rackId: updatedRack._id,
+      samples: updatedRack.samples.filter(sample => slots.includes(sample.slot))
+    })
   } catch (error) {
     console.log(error)
     res.status(500).send(error)
@@ -368,7 +374,10 @@ exports.cancelBookedSamples = async (req, res) => {
 
     rack.samples = updatedSamplesArr
     const updatedRack = await rack.save()
-    res.send({ rackId: updatedRack._id, samples: updatedRack.samples })
+    res.send({
+      rackId: updatedRack._id,
+      samples: updatedRack.samples.filter(sample => slots.includes(sample.slot))
+    })
   } catch (error) {
     console.log(error)
     res.status(500).send(error)
