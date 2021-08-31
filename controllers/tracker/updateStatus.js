@@ -35,7 +35,10 @@ const updateStatus = async (instrument, statusTable, historyTable) => {
 						acq: historyTableItem && historyTableItem.acq
 					}
 
+<<<<<<< HEAD
 					
+=======
+>>>>>>> batch
 					//if entry.status === 'Submitted' is used submittedAt is occasionally missing
 					//It might be that entry goes directly to 'Running' status.
 					if (oldEntry) {

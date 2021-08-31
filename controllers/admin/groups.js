@@ -17,7 +17,7 @@ exports.getGroups = async (req, res) => {
 
 		if (req.query.list === 'true') {
 			const groupList = groups.map(grp => {
-				return { name: grp.groupName, id: grp._id }
+				return { name: grp.groupName, id: grp._id, isBatch: grp.isBatch }
 			})
 			return res.send(groupList)
 		}
@@ -38,13 +38,13 @@ exports.getGroups = async (req, res) => {
 }
 
 exports.addGroup = async (req, res) => {
-	const { groupName, description } = req.body
+	const { groupName, description, isBatch } = req.body
 	const errors = validationResult(req)
 	try {
 		if (!errors.isEmpty()) {
 			return res.status(422).send(errors)
 		}
-		const group = new Group({ groupName: groupName.toLowerCase(), description })
+		const group = new Group({ groupName: groupName.toLowerCase(), description, isBatch })
 		const newGroup = await group.save()
 		res.status(201).send(newGroup)
 	} catch (error) {
@@ -63,6 +63,8 @@ exports.updateGroup = async (req, res) => {
 		if (!group.isActive) {
 			group.setUsersInactive()
 		}
+		//UpdateBatchUsers is a method that updates accessLevel according to group batch-submit status
+		group.updateBatchUsers()
 
 		const usersCounts = await group.getUserCounts()
 		res.send({ ...group._doc, ...usersCounts })
