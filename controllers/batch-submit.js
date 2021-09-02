@@ -183,7 +183,6 @@ exports.bookSamples = async (req, res) => {
         sample.exps.forEach(exp => expListSet.add(exp))
       }
     })
-
     const expErrors = []
     await Promise.all(
       Array.from(expListSet).map(async exp => {
@@ -193,13 +192,13 @@ exports.bookSamples = async (req, res) => {
         }
       })
     )
-
     if (expErrors.length !== 0) {
       const errorMessages = expErrors.map(exp => ({
         msg: `Experiment ${exp} is not available on instrument ${instrument.name}`
       }))
       return res.status(422).send({ errors: errorMessages })
     }
+    //======================================================================================
 
     const availableHolders = submitter.findAvailableHolders(
       instrId,
