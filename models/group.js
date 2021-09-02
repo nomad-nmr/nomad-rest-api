@@ -3,63 +3,69 @@ const Schema = mongoose.Schema
 const User = require('./user')
 
 const groupSchema = new Schema(
-	{
-		groupName: {
-			type: String,
-			required: true,
-			default: 'default',
-			unique: true
-		},
+  {
+    groupName: {
+      type: String,
+      required: true,
+      default: 'default',
+      unique: true
+    },
 
-		description: String,
+    description: String,
 
-		isBatch: {
-			type: Boolean,
-			default: false
-		},
+    isBatch: {
+      type: Boolean,
+      default: false
+    },
 
-		isActive: {
-			type: Boolean,
-			required: true,
-			default: true
-		}
-	},
-	{ timestamps: true }
+    isActive: {
+      type: Boolean,
+      required: true,
+      default: true
+    },
+    expList: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'ParameterSet'
+      }
+    ]
+  },
+  { timestamps: true }
 )
 
 groupSchema.methods.setUsersInactive = async function () {
-	const group = this
-	const users = await User.find({ group: group._id })
-	users.forEach(async user => {
-		user.isActive = false
-		await user.save()
-	})
+  const group = this
+  const users = await User.find({ group: group._id })
+  users.forEach(async user => {
+    user.isActive = false
+    await user.save()
+  })
 }
 groupSchema.methods.updateBatchUsers = async function () {
-	const group = this
-	const users = await User.find({ group: group._id })
-	users.forEach(async user => {
-		if (group.isBatch) {
-			if (user.accessLevel !== 'admin-b' || user.accessLevel !== 'user-b') {
-				user.accessLevel = 'user-b'
-				await user.save()
-			}
-		} else {
-			if (user.accessLevel === 'user-b') {
-				user.accessLevel = 'user'
-				await user.save()
-			}
-		}
-	})
+  const group = this
+  const users = await User.find({ group: group._id })
+  users.forEach(async user => {
+    if (group.isBatch) {
+      if (user.accessLevel !== 'admin-b' || user.accessLevel !== 'user-b') {
+        user.accessLevel = 'user-b'
+        await user.save()
+      }
+    } else {
+      if (user.accessLevel === 'user-b') {
+        user.accessLevel = 'user'
+        await user.save()
+      }
+    }
+  })
 }
 
 groupSchema.methods.getUserCounts = async function () {
-	const totalUserCount = await User.find({ group: this._id }).countDocuments()
-	const activeUserCount = await User.find({ group: this._id, isActive: true }).countDocuments()
-	return {
-		totalUserCount,
-		activeUserCount
-	}
+  const totalUserCount = await User.find({ group: this._id }).countDocuments()
+  const activeUserCount = await User.find({ group: this._id, isActive: true }).countDocuments()
+  return {
+    totalUserCount,
+    activeUserCount
+  }
 }
 
 module.exports = mongoose.model('Group', groupSchema)

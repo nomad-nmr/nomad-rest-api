@@ -4,6 +4,7 @@ const moment = require('moment')
 const Rack = require('../models/rack')
 const Instrument = require('../models/instrument')
 const Experiment = require('../models/experiment')
+const ParameterSet = require('../models/parameterSet')
 const app = require('../app')
 const io = require('../socket')
 
@@ -20,6 +21,8 @@ exports.getRacks = async (req, res) => {
         if (!rack.isOpen) {
           await Promise.all(
             rack.samples.map(async (sample, sampleIndex) => {
+              //If sample status in the rack as stored in DB is 'Submitted'
+              //the current status gets updated from History table
               if (sample.status === 'Submitted') {
                 let newStatus = 'Submitted'
                 for (let i = 0; i < sample.exps.length; i++) {
@@ -29,7 +32,14 @@ exports.getRacks = async (req, res) => {
                     'status'
                   )
                   if (status !== 'Booked' && newStatus !== 'Error' && newStatus !== 'Running') {
-                    newStatus = status
+                    //if experiment is not stored in history table after booking
+                    //Status 'Available' get to history table from tracker
+                    // Front end code soes not know this status an thus we change it here to 'Booked'
+                    if (status === 'Available') {
+                      newStatus = 'Booked'
+                    } else {
+                      newStatus = status
+                    }
                   }
                 }
                 racks[rackIndex].samples[sampleIndex].status = newStatus
@@ -148,7 +158,7 @@ exports.deleteSample = async (req, res) => {
 
 exports.bookSamples = async (req, res) => {
   const submitter = app.getSubmitter()
-  const { rackId, instrId, slots, closeQueue } = req.body
+  const { rackId, instrId, slots, closeQueue, expList } = req.body
 
   try {
     const instrument = await Instrument.findById(instrId)
@@ -164,6 +174,31 @@ exports.bookSamples = async (req, res) => {
     const rack = await Rack.findById(rackId).populate('group', 'groupName')
     if (!rack) {
       return res.status(404).send('Rack not found!')
+    }
+
+    //Checking if experiments in slots going to be booked are available on the instrument
+    const expListSet = new Set()
+    rack.samples.forEach(sample => {
+      if (slots.includes(sample.slot)) {
+        sample.exps.forEach(exp => expListSet.add(exp))
+      }
+    })
+
+    const expErrors = []
+    await Promise.all(
+      Array.from(expListSet).map(async exp => {
+        const paramSet = await ParameterSet.findOne({ name: exp })
+        if (!paramSet.availableOn.includes(instrId)) {
+          expErrors.push(exp)
+        }
+      })
+    )
+
+    if (expErrors.length !== 0) {
+      const errorMessages = expErrors.map(exp => ({
+        msg: `Experiment ${exp} is not available on instrument ${instrument.name}`
+      }))
+      return res.status(422).send({ errors: errorMessages })
     }
 
     const availableHolders = submitter.findAvailableHolders(

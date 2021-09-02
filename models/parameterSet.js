@@ -8,6 +8,11 @@ const parameterSetSchema = new Schema({
     unique: true
   },
   description: String,
+  hidden: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
   count: {
     type: Number,
     required: true,
