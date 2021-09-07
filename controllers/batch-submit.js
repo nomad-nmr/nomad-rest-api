@@ -255,7 +255,7 @@ exports.bookSamples = async (req, res) => {
               holder: sample.holder,
               sampleId: sample.dataSetName,
               solvent: sample.solvent,
-              title: sample.title,
+              title: sample.title + ' [' + sample.idCode + ']',
               experiments: sample.exps.map((exp, i) => ({
                 expNo: 10 + i,
                 paramSet: exp,
