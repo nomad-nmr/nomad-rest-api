@@ -108,6 +108,7 @@ exports.postSubmission = async (req, res) => {
       }
 
       io.getIO().to(socketId).emit('book', JSON.stringify(submitData[instrumentId]))
+      console.log(submitData[instrumentId][0].experiments)
     }
 
     res.send()
