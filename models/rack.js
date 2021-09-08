@@ -39,9 +39,10 @@ const rackSchema = new Schema({
         required: true
       },
 
-      idCode: {
+      tubeId: {
         type: String,
-        required: true
+        required: true,
+        default: '---'
       },
 
       exps: Array,
