@@ -19,9 +19,9 @@ exports.getParamSets = async (req, res) => {
     })
   }
 
-  if (req.user.accessLevel !== 'admin') {
-    searchParams.$and.push({ hidden: 'false' })
-  }
+  // if (req.user.accessLevel !== 'admin') {
+  //   searchParams.$and.push({ hidden: 'false' })
+  // }
 
   try {
     let paramSets = []
