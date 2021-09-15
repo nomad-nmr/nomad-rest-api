@@ -45,7 +45,7 @@ exports.getUsers = async (req, res) => {
       .skip((current - 1) * pageSize)
       .limit(+pageSize)
       .sort(sorter)
-      .populate('group')
+      .populate('group', 'groupName')
 
     if (!users) {
       res.status(404).send()
@@ -100,7 +100,7 @@ exports.postUser = async (req, res) => {
 
     const user = new User(newUserObj)
     const newUser = await user.save()
-    await newUser.populate('group').execPopulate()
+    await newUser.populate('group', 'groupName').execPopulate()
     delete newUser.password
     res.status(201).send(newUser)
   } catch (error) {
@@ -119,7 +119,10 @@ exports.updateUser = async (req, res) => {
 
     const updatedUser = { ...req.body, group: req.body.groupId }
 
-    const user = await User.findByIdAndUpdate(req.body._id, updatedUser).populate('group')
+    const user = await User.findByIdAndUpdate(req.body._id, updatedUser).populate(
+      'group',
+      'groupName'
+    )
     if (!user) {
       return res.status(404).send()
     }
