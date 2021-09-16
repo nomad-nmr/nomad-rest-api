@@ -16,7 +16,7 @@ exports.postSubmission = async (req, res) => {
 
     const user = userId === 'undefined' ? req.user : await User.findById(userId)
 
-    await user.populate('group').execPopulate()
+    await user.populate('group')
 
     const groupName = user.group.groupName
     const username = user.username

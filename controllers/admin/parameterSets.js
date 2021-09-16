@@ -26,7 +26,7 @@ exports.getParamSets = async (req, res) => {
   try {
     let paramSets = []
     if (group.expList.length > 0) {
-      await group.populate('expList').execPopulate()
+      await group.populate('expList')
       paramSets = group.expList
     } else {
       paramSets = await ParameterSet.find(searchParams).sort({ count: 'desc' })
