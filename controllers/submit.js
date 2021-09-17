@@ -190,13 +190,27 @@ exports.putReset = async (req, res) => {
       return res.status(404).send('Instrument not found')
     }
 
-    const holders = instrument.status.statusTable
-      .filter(row => row.status === 'Completed' || row.status === 'Error')
-      .map(row => row.holder)
+    const holders = []
+
+    instrument.status.statusTable.forEach((row, index) => {
+      const prevRow = instrument.status.statusTable[index - 1]
+      if (index === 0 || prevRow.datasetName !== row.datasetName) {
+        return holders.push({ number: row.holder, status: [row.status] })
+      } else {
+        const i = holders.length - 1
+        holders[i].status.push(row.status)
+      }
+    })
+
+    const filteredHolders = holders.filter(holder =>
+      holder.status.every(status => status !== 'Submitted' && status !== 'Running')
+    )
+
+    const holdersToDelete = filteredHolders.map(holder => holder.number)
 
     submitter.resetBookedHolders(instrId)
-    emitDeleteExps(instrId, holders, res)
-    res.send(holders)
+    emitDeleteExps(instrId, holdersToDelete, res)
+    res.send(holdersToDelete)
   } catch (error) {
     console.log(error)
     res.status(500).send()
