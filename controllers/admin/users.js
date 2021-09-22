@@ -100,7 +100,7 @@ exports.postUser = async (req, res) => {
 
     const user = new User(newUserObj)
     const newUser = await user.save()
-    await newUser.populate('group', 'groupName').execPopulate()
+    await newUser.populate('group', 'groupName')
     delete newUser.password
     res.status(201).send(newUser)
   } catch (error) {
