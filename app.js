@@ -31,10 +31,10 @@ app.use(helmet())
 
 //Setting headers to allow CORS
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  next()
+	res.setHeader('Access-Control-Allow-Origin', '*')
+	res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE')
+	res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+	next()
 })
 
 app.use('/tracker', trackerRoutes)
@@ -50,76 +50,83 @@ app.use('/admin/message', messageRoutes)
 app.use('/batch-submit', batchSubmitRoutes)
 
 app.use((req, res) => {
-  res.status(404).send()
+	res.status(404).send()
 })
 
 // Setting findByIdAndUpdate() to return updated document
 // Default setting is true
 mongoose.set('returnOriginal', false)
 
-mongoose.connect(process.env.MONGODB_URL).then(async () => {
-  console.log('DB connected')
-  //CReating default group and admin user (TODO: refactor into utility function that can be used in tracker auto-feed )
-  try {
-    let group = await Group.findOne()
-    //Adding the default group
-    if (!group) {
-      group = new Group()
-      await group.save()
-    }
+mongoose
+	.connect(process.env.MONGODB_URL, {
+		useNewUrlParser: true,
+		useCreateIndex: true,
+		useUnifiedTopology: true,
+		useFindAndModify: false
+	})
+	.then(async () => {
+		console.log('DB connected')
+		//CReating default group and admin user (TODO: refactor into utility function that can be used in tracker auto-feed )
+		try {
+			let group = await Group.findOne()
+			//Adding the default group
+			if (!group) {
+				group = new Group()
+				await group.save()
+			}
 
-    // adding default admin user
-    const user = await User.findOne()
-    if (!user) {
-      const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12)
-      const adminUser = new User({
-        username: 'admin',
-        password: hashedPassword,
-        accessLevel: 'admin',
-        email: 'admin@' + process.env.EMAIL_SUFFIX,
-        group: group._id
-      })
-      await adminUser.save()
-    }
+			// adding default admin user
+			const user = await User.findOne()
+			if (!user) {
+				const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12)
+				const adminUser = new User({
+					username: 'admin',
+					password: hashedPassword,
+					accessLevel: 'admin',
+					email: 'admin@' + process.env.EMAIL_SUFFIX,
+					group: group._id
+				})
+				await adminUser.save()
+			}
 
-    //Starting the express server
-    const server = app.listen(port, host, () => {
-      console.log(`Server is running on port ${port}`)
-    })
+			//Starting the express server
+			const server = app.listen(port, host, () => {
+				console.log(`Server is running on port ${port}`)
+			})
 
-    //Initiating socket.io
-    const io = require('./socket').init(server)
-    io.on('connection', socket => {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Client connected', socket.id)
-      }
-      //storing socketId in submitter to register instrument client
-      const { instrumentId } = socket.handshake.query
-      if (instrumentId) {
-        submitter.updateSocket(instrumentId, socket.id)
-      } else {
-        socket.join('users')
-      }
-      //updating submitter state and DB if instrument is disconnected
-      socket.on('disconnect', () => {
-        const { instrumentId } = socket.handshake.query
-        if (instrumentId) {
-          submitter.updateSocket(instrumentId)
-        }
-      })
-    })
-  } catch (error) {
-    console.log(error)
-  }
-})
+			//Initiating socket.io
+			const io = require('./socket').init(server)
+			io.on('connection', socket => {
+				if (process.env.NODE_ENV !== 'production') {
+					console.log('Client connected', socket.id)
+				}
+				//storing socketId in submitter to register instrument client
+				const { instrumentId } = socket.handshake.query
+				if (instrumentId) {
+					submitter.updateSocket(instrumentId, socket.id)
+				} else {
+					socket.join('users')
+				}
+				//updating submitter state and DB if instrument is disconnected
+				socket.on('disconnect', () => {
+					const { instrumentId } = socket.handshake.query
+					if (instrumentId) {
+						submitter.updateSocket(instrumentId)
+					}
+				})
+			})
+		} catch (error) {
+			console.log(error)
+		}
+	})
 
 // Submitter initiation
 const submitter = new Submitter()
 submitter.init()
 
 module.exports.getSubmitter = () => {
-  if (!submitter) {
-    throw new Error('Submitter was not initiated')
-  }
-  return submitter
+	if (!submitter) {
+		throw new Error('Submitter was not initiated')
+	}
+	return submitter
 }
