@@ -3,12 +3,13 @@ const { validationResult } = require('express-validator')
 const moment = require('moment')
 
 const User = require('../../models/user')
-const Group = require('../../models/group')
+// const Group = require('../../models/group')
 
 exports.getUsers = async (req, res) => {
   //setting search parameters according to showInactive settings
-  const { showInactive, current, pageSize, accessLevel, group, username, lastLoginOrder } =
+  const { showInactive, pageSize, current, accessLevel, group, username, lastLoginOrder } =
     req.query
+
   const searchParams = { $and: [{}] }
 
   if (showInactive === 'false') {
@@ -40,6 +41,11 @@ exports.getUsers = async (req, res) => {
       : { username: 'ascending' }
 
   try {
+    if (req.query.list === 'true') {
+      const userList = await User.find(searchParams, 'username fullName')
+      return res.send(userList)
+    }
+
     const total = await User.find(searchParams).countDocuments()
     const users = await User.find(searchParams, '-tokens -password')
       .skip((current - 1) * pageSize)
@@ -49,13 +55,6 @@ exports.getUsers = async (req, res) => {
 
     if (!users) {
       res.status(404).send()
-    }
-
-    if (req.query.list === 'true') {
-      const userList = users.map(usr => {
-        return { username: usr.username, id: usr._id, fullName: usr.fullName }
-      })
-      return res.send(userList)
     }
 
     const usersArr = users.map(user => {
