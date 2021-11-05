@@ -85,6 +85,12 @@ const expHistAutoFeed = async (instrument, statusTable, historyTable) => {
 					user: { username: user.username, id: user._id }
 				}
 				const experiment = new Experiment(histItem)
+				
+				//Console log for debugging saving experiments in DB with duplicate key after server restart  
+				if (process.env.SUBMIT_ON === 'true') {
+				console.log('!!!!!!!AUTO-FEED - saving new experiment!!!!');
+				}
+
 				await experiment.save()
 			}
 		}
