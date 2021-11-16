@@ -97,7 +97,7 @@ exports.getDrawerTable = async (req, res) => {
   try {
     const data = await Instrument.find(
       {},
-      '_id available name status.statusTable status.historyTable'
+      '_id available name status.statusTable status.historyTable overheadTime'
     )
     if (!data) {
       return res.status(404).send()
@@ -160,12 +160,12 @@ exports.getDrawerTable = async (req, res) => {
             expCount++
           })
       } else {
-        respArrayChunk = filteredArray
+        //adding overheadTime to calculate correctly remaining expt for "Running experiments" on front end.
+        respArrayChunk = filteredArray.map(row => ({ ...row, overheadTime: i.overheadTime }))
       }
 
       respArray = respArray.concat(respArrayChunk.map(row => ({ ...row, instrument: i.name })))
     })
-
     res.send(respArray)
   } catch (error) {
     console.log(error)
