@@ -253,6 +253,40 @@ exports.postPending = async (req, res) => {
   res.send()
 }
 
+exports.getAllowance = async (req, res) => {
+  try {
+    const respArr = []
+
+    await Promise.all(
+      req.query.instrIds.map(async instrId => {
+        const instr = await Instrument.findById(instrId)
+        let { dayAllowance, nightAllowance, maxNight } = instr
+        instr.status.statusTable.forEach(entry => {
+          if (entry.username === req.user.username && entry.time && entry.status === 'Submitted') {
+            const exptMins = moment.duration(entry.time, 'HH:mm:ss').as('minutes')
+            if (entry.night) {
+              nightAllowance -= exptMins
+            } else {
+              dayAllowance -= exptMins
+            }
+          }
+        })
+        respArr.push({
+          instrId,
+          dayAllowance,
+          nightAllowance,
+          maxNight,
+          nightExpt: instr.status.summary.nightExpt
+        })
+      })
+    )
+    res.send(respArr)
+  } catch (error) {
+    console.log(error)
+    res.status(500).send()
+  }
+}
+
 //Helper function that sends array of holders to be deleted to the client
 const emitDeleteExps = (instrId, holders, res) => {
   const submitter = app.getSubmitter()

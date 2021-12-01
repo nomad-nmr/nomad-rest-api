@@ -22,4 +22,6 @@ router.post('/pending/:type', auth, submitControllers.postPending)
 
 router.post('/pending-auth/:type', submitControllers.postPending)
 
+router.get('/allowance/', auth, submitControllers.getAllowance)
+
 module.exports = router
