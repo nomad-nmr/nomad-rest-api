@@ -69,7 +69,12 @@ exports.toggleAvailable = async (req, res) => {
     }
     instrument.available = !instrument.available
     const updatedInstrument = await instrument.save()
-    io.getIO().to('users').emit('availableUpdate', { _id: updatedInstrument._id })
+    io.getIO()
+      .to('users')
+      .emit('availableUpdate', {
+        _id: updatedInstrument._id,
+        available: updatedInstrument.available
+      })
     res.send()
   } catch (err) {
     console.log(err)
