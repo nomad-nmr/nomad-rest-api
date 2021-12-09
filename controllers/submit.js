@@ -43,7 +43,7 @@ exports.postSubmission = async (req, res) => {
           params: req.body[sampleKey].exps[expNo].params
         })
       }
-      const { night, solvent, title } = req.body[sampleKey]
+      const { night, solvent, title, priority } = req.body[sampleKey]
       const sampleId =
         moment().format('YYMMDDHHmm') + '-' + instrIndex + '-' + holder + '-' + username
       const sampleData = {
@@ -52,6 +52,7 @@ exports.postSubmission = async (req, res) => {
         holder,
         sampleId,
         solvent,
+        priority,
         night,
         title,
         experiments
@@ -89,6 +90,7 @@ exports.postSubmission = async (req, res) => {
             parameters: exp.params,
             title,
             night,
+            priority,
             status: 'Booked'
           }
           const experiment = new Experiment(expHistObj)
