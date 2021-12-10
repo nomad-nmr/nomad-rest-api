@@ -46,8 +46,8 @@ const updateStatus = async (instrument, statusTable, historyTable) => {
           const expHistEntry = await Experiment.findOneAndUpdate({ expId }, updateObj)
 
           if (expHistEntry) {
-            const { solvent, parameters, night, submittedAt, updatedAt } = expHistEntry
-            return { ...entry, solvent, parameters, night, submittedAt, updatedAt }
+            const { solvent, parameters, night, priority, submittedAt, updatedAt } = expHistEntry
+            return { ...entry, solvent, parameters, night, priority, submittedAt, updatedAt }
           } else {
             console.log(`Entry with expId ${expId} not found! AUTO-FEED`)
             await expHistAutoFeed(
