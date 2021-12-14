@@ -63,6 +63,7 @@ exports.getStatusTable = async (req, res) => {
         newRow.solvent = row.solvent
         newRow.time = row.time
         newRow.night = row.night
+        newRow.priority = row.priority
         newRow.status = row.status
         newRow.submittedAt = row.submittedAt
         newRow.exps = []
