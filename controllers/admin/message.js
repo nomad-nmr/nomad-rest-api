@@ -2,54 +2,64 @@ const User = require('../../models/user')
 const transporter = require('../../utils/emailTransporter')
 
 exports.postMessage = async (req, res) => {
-	const { recipients, subject, message } = req.body
-	try {
-		const recipientsSet = new Set()
-		await Promise.all(
-			recipients.map(async entry => {
-				let users = []
-				switch (entry.type) {
-					case 'user':
-						let user = undefined
-						if (entry.id) {
-							user = await User.findById(entry.id)
-						} else {
-							user = await User.findOne({ username: entry.name })
-						}
-						users = [user]
-						break
+  const { recipients, excludeRec, subject, message } = req.body
+  try {
+    const recipientsSet = new Set()
 
-					case 'group':
-						users = await User.find({ group: entry.id, isActive: true })
-						break
+    const getUserList = async recList => {
+      let userList = []
+      await Promise.all(
+        recList.map(async entry => {
+          let users = []
+          switch (entry.type) {
+            case 'user':
+              let user = undefined
+              if (entry.id) {
+                user = await User.findById(entry.id, 'username email')
+              } else {
+                user = await User.findOne({ username: entry.name }, 'username email')
+              }
+              users = [user]
+              break
 
-					case 'all':
-						users = await User.find({ isActive: true })
-						break
+            case 'group':
+              users = await User.find({ group: entry.id, isActive: true }, 'username email')
+              break
 
-					default:
-						throw new Error('Recipient type unknown')
-				}
+            case 'all':
+              users = await User.find({ isActive: true }, 'username email')
+              break
 
-				users.forEach(user => {
-					if (user.email) {
-						recipientsSet.add(user.email)
-					}
-				})
-			})
-		)
+            default:
+              throw new Error('Recipient type unknown')
+          }
+          //   console.log(users)
+          userList = [...userList, ...users]
+        })
+      )
+      return userList
+    }
+    const recList = await getUserList(recipients)
+    const recExcList = await getUserList(excludeRec)
 
-		await transporter.sendMail({
-			from: process.env.SMTP_SENDER,
-			cc: process.env.SMTP_SENDER,
-			to: [...recipientsSet],
-			subject: 'NOMAD: ' + (subject ? subject : ''),
-			text: message
-		})
+    recList.forEach(user => {
+      const excluded = recExcList.find(excU => excU.username === user.username)
+      if (!excluded && user.email) {
+        recipientsSet.add(user.email)
+      }
+    })
 
-		res.status(200).send(recipientsSet.size.toString())
-	} catch (error) {
-		console.log(error)
-		res.status(500).send(error)
-	}
+    await transporter.sendMail({
+      from: process.env.SMTP_SENDER,
+      cc: process.env.SMTP_SENDER,
+      to: [...recipientsSet],
+      subject: 'NOMAD: ' + (subject ? subject : ''),
+      text: message
+    })
+
+    res.status(200).send(recipientsSet.size.toString())
+  } catch (error) {
+    console.log(error)
+    res.status(500).send(error)
+  }
 }
