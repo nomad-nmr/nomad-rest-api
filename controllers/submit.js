@@ -205,7 +205,9 @@ exports.putReset = async (req, res) => {
     })
 
     const filteredHolders = holders.filter(holder =>
-      holder.status.every(status => status !== 'Submitted' && status !== 'Running')
+      holder.status.every(
+        status => status !== 'Completed' && status !== 'Running' && status !== 'Available'
+      )
     )
 
     const holdersToDelete = filteredHolders.map(holder => holder.number)
