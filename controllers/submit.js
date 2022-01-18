@@ -206,7 +206,7 @@ exports.putReset = async (req, res) => {
 
     const filteredHolders = holders.filter(holder =>
       holder.status.every(
-        status => status !== 'Completed' && status !== 'Running' && status !== 'Available'
+        status => status !== 'Submitted' && status !== 'Running' && status !== 'Available'
       )
     )
 
