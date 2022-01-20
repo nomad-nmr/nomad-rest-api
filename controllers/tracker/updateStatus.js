@@ -1,5 +1,6 @@
 const Experiment = require('../../models/experiment')
 const expHistAutoFeed = require('./expHistAutoFeed')
+const sendUploadCmd = require('./sendUploadCmd')
 
 //updateStatus takes existing status  table from instrument object and compares it with new status table
 // if entry does not exist or there is an existing entry with status change both status table and expHist table are getting updated
@@ -40,6 +41,12 @@ const updateStatus = async (instrument, statusTable, historyTable) => {
           if (oldEntry) {
             if (oldEntry.status === 'Available') {
               updateObj.submittedAt = new Date()
+            } else if (oldEntry.status === 'Running' && entry.status === 'Completed') {
+              const { datasetName, expNo, group } = entry
+              //sending message to client through socket to upload data
+              if (process.env.DATASTORE_ON) {
+                sendUploadCmd(instrument._id.toString(), { datasetName, expNo, group })
+              }
             }
           }
 

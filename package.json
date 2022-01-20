@@ -1,8 +1,8 @@
 {
   "name": "nomad-rest-api",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "REST API back-end for NOMAD system",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "env-cmd -f ./config/dev.env.js node app.js",
