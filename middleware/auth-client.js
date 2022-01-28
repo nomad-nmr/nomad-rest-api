@@ -14,7 +14,6 @@ const authClient = async (req, res, next) => {
     if (process.env.DATASTORE_ON !== 'true') {
       throw new Error('Upload rejected. Datastore function is off')
     }
-
     next()
   } catch (error) {
     console.log(error)

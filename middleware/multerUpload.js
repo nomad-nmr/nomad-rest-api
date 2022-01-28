@@ -1,3 +1,5 @@
+// multer middleware for upload of NMR data
+
 const multer = require('multer')
 const path = require('path')
 const moment = require('moment')
@@ -18,7 +20,7 @@ const storage = multer.diskStorage({
     } catch {
       await mkdir(storagePath, { recursive: true })
     }
-    req.body.path = relativePath
+    req.body.dataPath = relativePath
     cb(null, storagePath)
   },
   filename: async (req, file, cb) => {

@@ -58,7 +58,8 @@ const experimentSchema = new Schema(
     lock: String,
     shim: String,
     proc: String,
-    acq: String
+    acq: String,
+    dataPath: String
   },
   { timestamps: true }
 )
