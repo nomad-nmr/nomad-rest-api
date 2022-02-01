@@ -29,7 +29,9 @@ exports.getStatusTable = async (req, res) => {
       data = instrArr[0]
     }
     if (!data) {
-      return res.status(404).send()
+      return res
+        .status(409)
+        .send('No instruments found in database. Add instrument in Settings/Instruments')
     }
 
     //Filtering off entries in the table with 'Available'(Pending) status

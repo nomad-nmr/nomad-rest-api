@@ -2,7 +2,14 @@ const User = require('../../models/user')
 const transporter = require('../../utils/emailTransporter')
 
 exports.postMessage = async (req, res) => {
-  const { recipients, excludeRec, subject, message } = req.body
+  const { recipients, subject, message } = req.body
+  //excludedRec can be undefined if the controller is used to send message upon
+  //sample reject
+  let { excludeRec } = req.body
+  if (!excludeRec) {
+    excludeRec = []
+  }
+
   try {
     const recipientsSet = new Set()
 
