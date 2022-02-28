@@ -1,5 +1,3 @@
-const moment = require('moment')
-
 const Experiment = require('../../models/experiment')
 const expHistAutoFeed = require('./expHistAutoFeed')
 
