@@ -1,3 +1,5 @@
+const moment = require('moment')
+
 const Experiment = require('../../models/experiment')
 const expHistAutoFeed = require('./expHistAutoFeed')
 
@@ -5,7 +7,7 @@ const expHistAutoFeed = require('./expHistAutoFeed')
 // if entry does not exist or there is an existing entry with status change both status table and expHist table are getting updated
 // if expId is not found in expHist table expHistAutoFeed is called to create a new entry in expHist table
 
-const updateStatus = async (instrument, statusTable, historyTable) => {
+const updateStatusFromHist = async (instrument, statusTable, historyTable) => {
   try {
     const updatedStatusTable = Promise.all(
       statusTable.map(async entry => {
@@ -69,4 +71,4 @@ const updateStatus = async (instrument, statusTable, historyTable) => {
   }
 }
 
-module.exports = updateStatus
+module.exports = updateStatusFromHist

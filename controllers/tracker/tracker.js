@@ -4,7 +4,7 @@ const Instrument = require('../../models/instrument')
 const Group = require('../../models/group')
 const restructureInput = require('./restructureInput')
 const expHistAutoFeed = require('./expHistAutoFeed')
-const updateStatus = require('./updateStatus')
+const updateStatusFromHist = require('./updateStatusFromHist')
 const app = require('../../app')
 
 exports.ping = async (req, res) => {
@@ -30,7 +30,7 @@ exports.updateStatus = async (req, res) => {
     const newStatusObj = restructureInput(req.body.data, instrument, batchGroupsArr)
 
     if (process.env.SUBMIT_ON === 'true') {
-      const updatedStatusTable = await updateStatus(
+      const updatedStatusTable = await updateStatusFromHist(
         instrument,
         newStatusObj.statusTable,
         newStatusObj.historyTable
