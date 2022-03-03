@@ -10,7 +10,6 @@ const pathDate = moment().format('YYYY-MM')
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
     const { group, datasetName } = req.body
-
     const datastoreRootPath = process.env.DATASTORE_PATH ? process.env.DATASTORE_PATH : 'data'
     const relativePath = path.join(group, pathDate, datasetName)
     const storagePath = path.join(datastoreRootPath, relativePath)
