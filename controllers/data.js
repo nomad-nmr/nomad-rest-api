@@ -5,6 +5,7 @@ const path = require('path')
 const JSZip = require('jszip')
 
 const Experiment = require('../models/experiment')
+const getNMRium = require('convert-to-nmrium')
 
 exports.postData = async (req, res) => {
   const { datasetName, expNo, dataPath } = req.body
@@ -16,9 +17,18 @@ exports.postData = async (req, res) => {
     experiment.dataPath = dataPath
     experiment.status = 'Archived'
     experiment.save()
+
+    //converting to NMRium format file
+    const datastorePath = path.join(process.env.DATASTORE_PATH, dataPath, experiment.expId)
+    await getNMRium.fromBrukerZip(datastorePath + '.zip', {
+      save: true,
+      outputPath: datastorePath + '.nmrium'
+    })
+
     if (!process.env.NODE_ENV === 'production') {
       console.log('data received', datasetName, expNo)
     }
+
     res.send()
   } catch (error) {
     console.log(error)

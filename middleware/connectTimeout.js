@@ -1,5 +1,5 @@
 const connectTimeout = (req, res, next) => {
-  req.connection.setTimeout(10000)
+  req.connection.setTimeout(+process.env.DATA_UPLOAD_TIMEOUT || 30000)
   next()
 }
 
