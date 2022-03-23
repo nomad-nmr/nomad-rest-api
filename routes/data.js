@@ -18,4 +18,8 @@ router.post(
 
 router.get('/exps', auth, dataControllers.getExps)
 
+router.get('/nmrium', dataControllers.getNMRium)
+
+router.put('/nmrium', dataControllers.putNMRium)
+
 module.exports = router

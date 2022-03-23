@@ -1,5 +1,4 @@
 const fs = require('fs/promises')
-const { createReadStream } = require('fs')
 const path = require('path')
 
 const JSZip = require('jszip')
@@ -19,11 +18,15 @@ exports.postData = async (req, res) => {
     experiment.save()
 
     //converting to NMRium format file
-    const datastorePath = path.join(process.env.DATASTORE_PATH, dataPath, experiment.expId)
-    await getNMRium.fromBrukerZip(datastorePath + '.zip', {
-      save: true,
-      outputPath: datastorePath + '.nmrium'
-    })
+    if (process.env.PREPROCESS_NMRIUM) {
+      const datastorePath = path.join(process.env.DATASTORE_PATH, dataPath, experiment.expId)
+      getNMRium.fromBrukerZip(datastorePath + '.zip', {
+        save: true,
+        outputPath: datastorePath + '.nmrium',
+        spectrumOnly: true,
+        title: experiment.title
+      })
+    }
 
     if (!process.env.NODE_ENV === 'production') {
       console.log('data received', datasetName, expNo)
@@ -63,4 +66,64 @@ exports.getExps = async (req, res) => {
     console.log(error)
     res.sendStatus(500)
   }
+}
+
+exports.getNMRium = async (req, res) => {
+  const expIds = req.query.exps.split(',')
+  const data = {
+    spectra: []
+  }
+  try {
+    await Promise.all(
+      expIds.map(async expId => {
+        const experiment = await Experiment.findById(expId)
+
+        const filePath = path.join(
+          process.env.DATASTORE_PATH,
+          experiment.dataPath,
+          experiment.expId
+        )
+
+        let nmriumObj = {}
+
+        //if .nmrium file exists in datastore it gets parsed and sent to frontend
+        //otherwise conversion from Bruker zip is triggered
+        try {
+          await fs.access(filePath + '.nmrium')
+          const nmriumFile = await fs.readFile(filePath + '.nmrium', 'utf8')
+          nmriumObj = JSON.parse(nmriumFile)
+        } catch (error) {
+          nmriumObj = await getNMRium.fromBrukerZip(filePath + '.zip', {
+            spectrumOnly: true,
+            title: experiment.title
+          })
+        }
+
+        nmriumObj.spectra[0].id = experiment._id
+
+        data.spectra = [...data.spectra, ...nmriumObj.spectra]
+      })
+    )
+
+    res.send(data)
+  } catch (error) {
+    console.log(error)
+    res.sendStatus(500)
+  }
+}
+
+exports.putNMRium = async (req, res) => {
+  await Promise.all(
+    req.body.spectra.map(async spect => {
+      const experiment = await Experiment.findById(spect.id)
+      const filePath = path.join(
+        process.env.DATASTORE_PATH,
+        experiment.dataPath,
+        experiment.expId + '.nmrium'
+      )
+      const data = JSON.stringify({ spectra: [spect] })
+      await fs.writeFile(filePath, data)
+    })
+  )
+  res.send()
 }
