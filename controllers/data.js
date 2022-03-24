@@ -93,6 +93,9 @@ exports.getNMRium = async (req, res) => {
           const nmriumFile = await fs.readFile(filePath + '.nmrium', 'utf8')
           nmriumObj = JSON.parse(nmriumFile)
         } catch (error) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(error)
+          }
           nmriumObj = await getNMRium.fromBrukerZip(filePath + '.zip', {
             spectrumOnly: true,
             title: experiment.title
