@@ -1,3 +1,5 @@
+const moment = require('moment')
+
 const Experiment = require('../models/experiment')
 
 exports.fetchExperiments = async (req, res) => {
@@ -41,5 +43,9 @@ exports.fetchExperiments = async (req, res) => {
     }
   })
 
-  res.send(datasets)
+  const sortedDatasets = datasets.sort(
+    (a, b) => moment(b.submittedAt).valueOf() - moment(a.submittedAt).valueOf()
+  )
+
+  res.send(sortedDatasets)
 }
