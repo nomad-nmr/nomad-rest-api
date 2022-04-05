@@ -3,13 +3,17 @@ const moment = require('moment')
 const Experiment = require('../models/experiment')
 
 exports.fetchExperiments = async (req, res) => {
-  // const { userId } = req.query
+  const { currentPage, pageSize } = req.query
+
+  const searchParams = { 'user.id': req.user._id, status: 'Archived' }
+
   const excludeProps =
     '-remarks -status -load -atma -spin -lock -shim -proc -acq -createdAt -expTime -dataPath'
-  const experiments = await Experiment.find(
-    { 'user.id': req.user._id, status: 'Archived' },
-    excludeProps
-  )
+
+  const total = await Experiment.find(searchParams).countDocuments()
+  const experiments = await Experiment.find(searchParams, excludeProps)
+    .skip((currentPage - 1) * pageSize)
+    .limit(+pageSize)
 
   const datasets = []
   experiments.forEach(exp => {
@@ -47,5 +51,5 @@ exports.fetchExperiments = async (req, res) => {
     (a, b) => moment(b.submittedAt).valueOf() - moment(a.submittedAt).valueOf()
   )
 
-  res.send(sortedDatasets)
+  res.send({ data: sortedDatasets, total })
 }
