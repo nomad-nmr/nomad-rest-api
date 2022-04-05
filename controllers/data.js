@@ -24,6 +24,7 @@ exports.postData = async (req, res) => {
         save: true,
         outputPath: datastorePath + '.nmrium',
         spectrumOnly: true,
+        removeProjections: true,
         title: experiment.title
       })
     }
