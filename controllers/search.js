@@ -15,8 +15,6 @@ exports.fetchExperiments = async (req, res) => {
     userId
   } = req.query
 
-  console.log(req.query)
-
   const excludeProps =
     '-remarks -status -load -atma -spin -lock -shim -proc -acq -createdAt -expTime -dataPath'
 
