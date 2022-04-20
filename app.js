@@ -25,6 +25,8 @@ const paramSetsRoutes = require('./routes/admin/parameterSets')
 const submitRoutes = require('./routes/submit')
 const messageRoutes = require('./routes/admin/message')
 const batchSubmitRoutes = require('./routes/batch-submit')
+const dataRoutes = require('./routes/data')
+const searchRoutes = require('./routes/search')
 
 app.use(bodyParser.json({ strict: true, limit: '50mb' }))
 app.use(helmet())
@@ -48,6 +50,8 @@ app.use('/admin/history', historyRoutes)
 app.use('/admin/param-sets', paramSetsRoutes)
 app.use('/admin/message', messageRoutes)
 app.use('/batch-submit', batchSubmitRoutes)
+app.use('/data', dataRoutes)
+app.use('/search', searchRoutes)
 
 app.use((req, res) => {
   res.status(404).send()

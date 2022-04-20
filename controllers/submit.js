@@ -7,7 +7,6 @@ const Instrument = require('../models/instrument')
 const ParameterSet = require('../models/parameterSet')
 const User = require('../models/user')
 const Experiment = require('../models/experiment')
-const expHistAutoFeed = require('./tracker/expHistAutoFeed')
 
 exports.postSubmission = async (req, res) => {
   try {
