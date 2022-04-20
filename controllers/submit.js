@@ -34,13 +34,15 @@ exports.postSubmission = async (req, res) => {
       const experiments = []
       for (let expNo in req.body[sampleKey].exps) {
         const paramSet = req.body[sampleKey].exps[expNo].paramSet
-        const paramSetName = await ParameterSet.findOne({ name: paramSet }, 'description')
+        const paramSetObj = await ParameterSet.findOne({ name: paramSet })
         experiments.push({
           expNo,
           paramSet,
-          expTitle: paramSetName.description,
+          expTitle: paramSetObj.description,
           params: req.body[sampleKey].exps[expNo].params
         })
+        paramSetObj.count++
+        paramSetObj.save()
       }
       const { night, solvent, title, priority } = req.body[sampleKey]
       const sampleId =
@@ -265,7 +267,11 @@ exports.getAllowance = async (req, res) => {
         const instr = await Instrument.findById(instrId)
         let { dayAllowance, nightAllowance, maxNight } = instr
         instr.status.statusTable.forEach(entry => {
-          if (entry.username === req.user.username && entry.time && entry.status === 'Submitted') {
+          if (
+            entry.username === req.user.username &&
+            entry.time &&
+            (entry.status === 'Submitted' || entry.status === 'Available')
+          ) {
             const exptMins = moment.duration(entry.time, 'HH:mm:ss').as('minutes')
             if (entry.night) {
               nightAllowance -= exptMins

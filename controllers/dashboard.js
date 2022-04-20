@@ -99,7 +99,7 @@ exports.getStatusTable = async (req, res) => {
 exports.getDrawerTable = async (req, res) => {
   try {
     const data = await Instrument.find(
-      {},
+      { isActive: true },
       '_id available name status.statusTable status.historyTable overheadTime'
     )
     if (!data) {
