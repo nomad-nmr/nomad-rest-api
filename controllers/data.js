@@ -5,6 +5,7 @@ const JSZip = require('jszip')
 
 const Experiment = require('../models/experiment')
 const getNMRium = require('convert-to-nmrium')
+const { sendStatus } = require('express/lib/response')
 
 exports.postData = async (req, res) => {
   const { datasetName, expNo, dataPath } = req.body
@@ -130,4 +131,36 @@ exports.putNMRium = async (req, res) => {
     })
   )
   res.send()
+}
+
+exports.getPDF = async (req, res) => {
+  const { expId } = req.params
+  try {
+    const experiment = await Experiment.findById(expId)
+    if (!experiment) {
+      console.log('Error: experiment not found')
+      return sendStatus(404)
+    }
+    const zipFilePath = path.join(
+      process.env.DATASTORE_PATH,
+      experiment.dataPath,
+      experiment.expId + '.zip'
+    )
+    const zipFile = await fs.readFile(zipFilePath)
+
+    let zip = new JSZip()
+    zip = await zip.loadAsync(zipFile)
+
+    zip.forEach(async (relativePath, file) => {
+      const pathArr = relativePath.split('.')
+      if (pathArr.find(i => i === 'pdf')) {
+        const pdfBuffer = await file.async('nodebuffer')
+        return res.send(pdfBuffer)
+      }
+    })
+    res.sendStatus(417)
+  } catch (error) {
+    console.log(error)
+    res.sendStatus(500)
+  }
 }

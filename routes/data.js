@@ -22,4 +22,6 @@ router.get('/nmrium', auth, dataControllers.getNMRium)
 
 router.put('/nmrium', auth, dataControllers.putNMRium)
 
+router.get('/pdf/:expId', auth, dataControllers.getPDF)
+
 module.exports = router
