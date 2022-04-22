@@ -151,14 +151,19 @@ exports.getPDF = async (req, res) => {
     let zip = new JSZip()
     zip = await zip.loadAsync(zipFile)
 
+    let pdfPath = undefined
     zip.forEach(async (relativePath, file) => {
       const pathArr = relativePath.split('.')
       if (pathArr.find(i => i === 'pdf')) {
-        const pdfBuffer = await file.async('nodebuffer')
-        return res.send(pdfBuffer)
+        pdfPath = relativePath
       }
     })
-    res.sendStatus(417)
+    if (pdfPath) {
+      const pdfBuffer = await zip.file(pdfPath).async('nodebuffer')
+      res.send(pdfBuffer)
+    } else {
+      res.sendStatus(417)
+    }
   } catch (error) {
     console.log(error)
     res.sendStatus(500)
