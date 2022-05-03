@@ -42,7 +42,7 @@ exports.fetchRepair = async (req, res) => {
       expHist.map(async entry => {
         const expId = entry.datasetName + '-' + entry.expNo
         const experiment = await Experiment.findOne({ expId })
-        if (!experiment || experiment.status !== 'Archived') {
+        if (!experiment || (experiment.status !== 'Archived' && experiment.status !== 'Error')) {
           repairList.push({
             key: expId,
             username: entry.username,
