@@ -119,7 +119,10 @@ exports.getDataAccess = async (req, res) => {
   try {
     await req.user.populate('group')
 
-    const dataAccess = req.user.dataAccess ? req.user.dataAccess : req.user.group.dataAccess
+    const dataAccess =
+      req.user.dataAccess && req.user.dataAccess !== 'undefined'
+        ? req.user.dataAccess
+        : req.user.group.dataAccess
 
     res.send(dataAccess)
   } catch (error) {
