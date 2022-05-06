@@ -23,6 +23,11 @@ const groupSchema = new Schema(
       required: true,
       default: true
     },
+    dataAccess: {
+      type: String,
+      required: true,
+      default: 'user'
+    },
     expList: [
       {
         type: Schema.Types.ObjectId,

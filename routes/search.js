@@ -7,4 +7,6 @@ const router = express.Router()
 
 router.get('/experiments', auth, searchControllers.fetchExperiments)
 
+router.get('/data-access', auth, searchControllers.getDataAccess)
+
 module.exports = router

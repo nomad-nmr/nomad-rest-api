@@ -8,7 +8,7 @@ const groupsController = require('../../controllers/admin/groups')
 
 const router = express.Router()
 
-router.get('/', auth, authAdmin, groupsController.getGroups)
+router.get('/', auth, groupsController.getGroups)
 
 router.post(
   '/',
