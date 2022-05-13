@@ -19,6 +19,8 @@ exports.fetchExperiments = async (req, res) => {
     const excludeProps =
       '-remarks -status -load -atma -spin -lock -shim -proc -acq -createdAt -expTime -dataPath'
 
+    const dataAccess = await req.user.getDataAccess()
+
     const searchParams = { $and: [{ status: 'Archived' }] }
 
     if (instrumentId && instrumentId !== 'undefined') {
@@ -48,20 +50,42 @@ exports.fetchExperiments = async (req, res) => {
       })
     }
 
-    if (
-      (!groupId || groupId === 'undefined') &&
-      (!userId || userId === 'undefined') &&
-      req.user.accessLevel !== 'admin'
-    ) {
-      searchParams.$and.push({ 'user.id': req.user._id })
+    const adminSearchLogic = () => {
+      if (groupId && groupId !== 'undefined') {
+        searchParams.$and.push({ 'group.id': groupId })
+      }
+
+      if (userId && userId !== 'undefined') {
+        searchParams.$and.push({ 'user.id': userId })
+      }
     }
 
-    if (groupId && groupId !== 'undefined' && (!userId || userId === 'undefined')) {
-      searchParams.$and.push({ 'group.id': groupId })
-    }
+    switch (dataAccess) {
+      case 'user':
+        searchParams.$and.push({ 'user.id': req.user._id })
+        break
 
-    if (userId && userId !== 'undefined') {
-      searchParams.$and.push({ 'user.id': userId })
+      case 'group':
+        if (userId && userId !== 'undefined') {
+          searchParams.$and.push({ 'user.id': userId, 'group.id': req.user.group })
+        } else {
+          searchParams.$and.push({ 'user.id': req.user._id })
+        }
+        break
+
+      case 'admin-b':
+        adminSearchLogic()
+        if ((!groupId || groupId === 'undefined') && (!userId || userId === 'undefined')) {
+          req.user.id
+          searchParams.$and.push({ 'user.id': req.user._id })
+        }
+        break
+
+      case 'admin':
+        adminSearchLogic()
+        break
+      default:
+        throw new Error('Data access rights unknown')
     }
 
     const total = await Experiment.find(searchParams).countDocuments()
@@ -117,13 +141,7 @@ exports.fetchExperiments = async (req, res) => {
 
 exports.getDataAccess = async (req, res) => {
   try {
-    await req.user.populate('group')
-
-    const dataAccess =
-      req.user.dataAccess && req.user.dataAccess !== 'undefined'
-        ? req.user.dataAccess
-        : req.user.group.dataAccess
-
+    const dataAccess = await req.user.getDataAccess()
     res.send(dataAccess)
   } catch (error) {
     console.log(error)

@@ -3,7 +3,7 @@ const { validationResult } = require('express-validator')
 const moment = require('moment')
 
 const User = require('../../models/user')
-// const Group = require('../../models/group')
+const Group = require('../../models/group')
 
 exports.getUsers = async (req, res) => {
   //setting search parameters according to showInactive settings
@@ -41,9 +41,46 @@ exports.getUsers = async (req, res) => {
       : { username: 'ascending' }
 
   try {
+    //Generating user list for drop down select
     if (req.query.list === 'true') {
-      const userList = await User.find(searchParams, 'username fullName')
-      return res.send(userList)
+      if (req.query.search !== 'true' || req.query.showInactive !== 'true') {
+        const userList = await User.find(
+          { ...searchParams, isActive: true },
+          'username fullName'
+        ).sort({
+          username: 'asc'
+        })
+        return res.send(userList)
+      } else {
+        //for search user select with inactive switch on we return combined list of inactive an ex users from the group
+        const onlyInactiveUsrList = await User.find(
+          { ...searchParams, isActive: false },
+          'username fullName'
+        )
+
+        const group = await Group.findById(req.query.group, 'exUsers').populate(
+          'exUsers',
+          'username fullName'
+        )
+        // let sortedUsrList = []
+        group.exUsers.forEach(usr => {
+          const onList = onlyInactiveUsrList.find(i => i.username === usr.username)
+          if (!onList) {
+            onlyInactiveUsrList.push(usr)
+          }
+        })
+
+        const sortedUsrList = onlyInactiveUsrList.sort((a, b) => {
+          if (a.username < b.username) {
+            return -1
+          }
+          if (a.username > b.username) {
+            return 1
+          }
+          return 0
+        })
+        return res.send(sortedUsrList)
+      }
     }
 
     const total = await User.find(searchParams).countDocuments()
@@ -117,14 +154,26 @@ exports.updateUser = async (req, res) => {
     }
 
     const updatedUser = { ...req.body, group: req.body.groupId }
+    const oldUser = await User.findByIdAndUpdate(req.body._id, updatedUser, {
+      new: false
+    })
 
-    const user = await User.findByIdAndUpdate(req.body._id, updatedUser).populate(
-      'group',
-      'groupName'
-    )
-    if (!user) {
+    if (!oldUser) {
       return res.status(404).send()
     }
+
+    //updating exUsers array on the current group user moves to different group
+    if (req.body.groupId.toString() !== oldUser.group.toString()) {
+      const currentGroup = await Group.findById(oldUser.group)
+      const exUsersSet = new Set(currentGroup.exUsers)
+      exUsersSet.add(oldUser._id)
+      currentGroup.exUsers = Array.from(exUsersSet)
+      currentGroup.save()
+    }
+
+    //fetching updated user to work on response
+    const user = await User.findById(req.body._id).populate('group', 'groupName')
+
     delete user.password
     delete user.tokens
     const lastLogin = user._doc.lastLogin

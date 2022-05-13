@@ -85,4 +85,14 @@ userSchema.methods.generateResetToken = async function () {
   return token
 }
 
+//helper function that takes in user object and returns dataAccess
+userSchema.methods.getDataAccess = async function () {
+  const user = this
+  await user.populate('group')
+  const dataAccess =
+    user.dataAccess && user.dataAccess !== 'undefined' ? user.dataAccess : user.group.dataAccess
+
+  return Promise.resolve(dataAccess)
+}
+
 module.exports = mongoose.model('User', userSchema)

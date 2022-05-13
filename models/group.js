@@ -33,6 +33,13 @@ const groupSchema = new Schema(
         type: Schema.Types.ObjectId,
         ref: 'ParameterSet'
       }
+    ],
+    //Array of users that were members of the group. Needs to be included in list of inactive users.
+    exUsers: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'User'
+      }
     ]
   },
   { timestamps: true }

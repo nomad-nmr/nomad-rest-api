@@ -118,19 +118,32 @@ exports.getNMRium = async (req, res) => {
 }
 
 exports.putNMRium = async (req, res) => {
-  await Promise.all(
-    req.body.spectra.map(async spect => {
-      const experiment = await Experiment.findById(spect.id)
-      const filePath = path.join(
-        process.env.DATASTORE_PATH,
-        experiment.dataPath,
-        experiment.expId + '.nmrium'
-      )
-      const data = JSON.stringify({ spectra: [spect] })
-      await fs.writeFile(filePath, data)
-    })
-  )
-  res.send()
+  try {
+    await Promise.all(
+      req.body.spectra.map(async spect => {
+        const experiment = await Experiment.findById(spect.id)
+        const dataAccess = await req.user.getDataAccess()
+        if (dataAccess !== 'admin' && experiment.user.id.toString() !== req.user._id.toString()) {
+          throw new Error('forbidden')
+        }
+        const filePath = path.join(
+          process.env.DATASTORE_PATH,
+          experiment.dataPath,
+          experiment.expId + '.nmrium'
+        )
+        const data = JSON.stringify({ spectra: [spect] })
+        await fs.writeFile(filePath, data)
+      })
+    )
+    res.send()
+  } catch (error) {
+    if (error.message === 'forbidden') {
+      res.sendStatus(403)
+    } else {
+      console.log(error)
+      res.sendStatus(500)
+    }
+  }
 }
 
 exports.getPDF = async (req, res) => {

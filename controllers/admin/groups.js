@@ -19,7 +19,7 @@ exports.getGroups = async (req, res) => {
 
     if (req.query.list === 'true') {
       const groupList = groups.map(grp => {
-        return { name: grp.groupName, id: grp._id, isBatch: grp.isBatch }
+        return { name: grp.groupName, id: grp._id, isBatch: grp.isBatch, isActive: grp.isActive }
       })
       return res.send(groupList)
     }
