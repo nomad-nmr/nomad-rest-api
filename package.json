@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "env-cmd -f ./config/dev.env.js node app.js",
-    "dev": "env-cmd -f ./config/dev.env.js nodemon app.js"
+    "dev": "env-cmd -f ./config/dev.env.js nodemon app.js",
+    "dev-docker": "nodemon app.js"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +29,7 @@
     "socket.io": "^4.2.0"
   },
   "devDependencies": {
-    "env-cmd": "^10.1.0"
+    "env-cmd": "^10.1.0",
+    "nodemon": "2.0.16"
   }
 }
