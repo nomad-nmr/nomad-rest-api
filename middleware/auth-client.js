@@ -11,7 +11,8 @@ const authClient = async (req, res, next) => {
     if (!instrument) {
       throw new Error('Incorrect instrument ID')
     }
-    if (process.env.DATASTORE_ON !== 'true') {
+
+    if (!process.env.DATASTORE_ON || process.env.DATASTORE_ON === 'false') {
       throw new Error('Upload rejected. Datastore function is off')
     }
     next()
