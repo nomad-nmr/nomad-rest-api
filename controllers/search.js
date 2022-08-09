@@ -90,7 +90,7 @@ exports.fetchExperiments = async (req, res) => {
 
     const total = await Experiment.find(searchParams).countDocuments()
     const experiments = await Experiment.find(searchParams, excludeProps)
-      .sort({ submittedAt: 'desc' })
+      .sort({ updatedAt: 'desc' })
       .skip((currentPage - 1) * pageSize)
       .limit(+pageSize)
 
@@ -129,7 +129,9 @@ exports.fetchExperiments = async (req, res) => {
     //sorting exps to get ascend for expNo
     const sortedDatasets = datasets.map(i => {
       i.exps.sort((a, b) => a.expNo - b.expNo)
-      return i
+      const lastIndex = i.exps.length - 1
+      const lastArchivedAt = i.exps[lastIndex].archivedAt
+      return { ...i, lastArchivedAt }
     })
 
     res.send({ data: sortedDatasets, total })
