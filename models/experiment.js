@@ -49,7 +49,11 @@ const experimentSchema = new Schema(
     night: Boolean,
     priority: Boolean,
     submittedAt: Date,
+    runningAt: Date,
     expTime: String,
+    //total experimental time
+    //duration from awarding status running to status archived
+    totalExpTime: String,
     status: { type: String, required: true },
     remarks: String,
     load: String,

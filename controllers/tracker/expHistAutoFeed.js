@@ -9,7 +9,7 @@ const sendUploadCmd = require('./sendUploadCmd')
 
 // helper function that updated automatically DB if group, user or parameter set has not been stored yet (auto-feed)
 // & updates exp history every time when experiment stops running (ie. status is changed from "running" to "completed" or "error" )
-//It takes as argument reformated statusTable and historyTable and instrument in form og object {name, id}
+//It takes as argument reformatted statusTable and historyTable and instrument in form og object {name, id}
 
 const expHistAutoFeed = async (instrument, statusTable, historyTable) => {
   try {
@@ -18,7 +18,11 @@ const expHistAutoFeed = async (instrument, statusTable, historyTable) => {
       await runningExperiments.getState()
     }
 
-    let histItem = runningExperiments.update(instrument.id, statusTable)
+    const histItem = runningExperiments.update(instrument.id, statusTable)
+
+    if (histItem) {
+      console.log(histItem)
+    }
 
     if (histItem) {
       const rawHistItemObj = historyTable.find(
@@ -76,12 +80,13 @@ const expHistAutoFeed = async (instrument, statusTable, historyTable) => {
           await parameterSet.save()
         }
 
-        histItem = {
+        const newHistItem = {
           ...rawHistItemObj,
           expId: rawHistItemObj.datasetName + '-' + rawHistItemObj.expNo,
           status,
           expTime,
           finishedAt: new Date(),
+          runningAt: histItem.runningAt,
           instrument,
           group: { name: group.groupName, id: group._id },
           user: { username: user.username, id: user._id }
@@ -94,7 +99,7 @@ const expHistAutoFeed = async (instrument, statusTable, historyTable) => {
 
         //sending message to client through socket to upload data when experiment is completed
         if (
-          histItem.status === 'Completed' &&
+          newHistItem.status === 'Completed' &&
           process.env.DATASTORE_ON === 'true' &&
           process.env.SUBMIT_ON === 'false'
         ) {
@@ -104,7 +109,7 @@ const expHistAutoFeed = async (instrument, statusTable, historyTable) => {
           sendUploadCmd(instrument.id.toString(), { datasetName, expNo, group })
         }
 
-        const experiment = new Experiment(histItem)
+        const experiment = new Experiment(newHistItem)
         await experiment.save()
       }
     }
