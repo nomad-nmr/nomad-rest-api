@@ -21,7 +21,7 @@ exports.getCosts = async (req, res) => {
     }
 
     const resData = []
-    const instrumentList = await Instrument.find({ isActive: true }, 'name')
+    const instrumentList = await Instrument.find({ isActive: true }, 'name cost')
 
     if (groupId === 'undefined') {
       //each entry of the table is group
@@ -42,7 +42,8 @@ exports.getCosts = async (req, res) => {
           instrumentList.forEach((i, index) => {
             const filteredExpArray = expArray.filter(exp => exp.instrument.name === i.name)
             const expT = getExpTimeSum(filteredExpArray)
-            const cost = moment.duration(expT).asHours().toFixed(2)
+            const cost = (moment.duration(expT).asHours() * i.cost).toFixed(2)
+            // console.log(cost)
             newEntry.costsPerInstrument.push({
               instrument: i.name,
               expCount: filteredExpArray.length,
@@ -82,7 +83,7 @@ exports.getCosts = async (req, res) => {
               exp => exp.instrument.name === i.name && exp.user.id.toString() === usrId
             )
             const expT = getExpTimeSum(filteredExpArray)
-            const cost = moment.duration(expT).asHours().toFixed(2)
+            const cost = (moment.duration(expT).asHours() * i.cost).toFixed(2)
             newEntry.costsPerInstrument.push({
               instrument: i.name,
               expCount: filteredExpArray.length,
@@ -159,3 +160,28 @@ const sortNamesArray = inputArray =>
     }
     return 0
   })
+
+exports.getInstrumentsCosting = async (req, res) => {
+  try {
+    const resData = await Instrument.find({ isActive: true }, 'name cost')
+    res.send(resData)
+  } catch (error) {
+    console.log(error)
+    res.sendStatus(500)
+  }
+}
+
+exports.putInstrumentsCosting = async (req, res) => {
+  try {
+    const instrumentsArray = Object.keys(req.body)
+    await Promise.all(
+      instrumentsArray.map(async i => {
+        await Instrument.findOneAndUpdate({ name: i }, { $set: { cost: req.body[i] } })
+      })
+    )
+    res.send()
+  } catch (error) {
+    console.log(error)
+    res.sendStatus(500)
+  }
+}

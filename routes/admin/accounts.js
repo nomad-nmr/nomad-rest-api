@@ -5,6 +5,10 @@ const accountsControllers = require('../../controllers/admin/accounts')
 
 const router = express.Router()
 
-router.get('/costs', auth, authAdmin, accountsControllers.getCosts)
+router.get('/data', auth, authAdmin, accountsControllers.getCosts)
+
+router.get('/instruments-costing', auth, authAdmin, accountsControllers.getInstrumentsCosting)
+
+router.put('/instruments-costing', auth, authAdmin, accountsControllers.putInstrumentsCosting)
 
 module.exports = router
