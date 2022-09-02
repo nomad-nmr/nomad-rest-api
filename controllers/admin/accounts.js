@@ -25,9 +25,7 @@ exports.getCosts = async (req, res) => {
 
     if (groupId === 'undefined') {
       //each entry of the table is group
-      const groupList = await Group.find({ isActive: true }, 'groupName').sort({
-        groupName: 'asc'
-      })
+      const groupList = await Group.find({ isActive: true }, 'groupName')
 
       await Promise.all(
         groupList.map(async entry => {
@@ -42,7 +40,7 @@ exports.getCosts = async (req, res) => {
           instrumentList.forEach((i, index) => {
             const filteredExpArray = expArray.filter(exp => exp.instrument.name === i.name)
             const expT = getExpTimeSum(filteredExpArray)
-            const cost = (moment.duration(expT).asHours() * i.cost).toFixed(2)
+            const cost = Math.round(moment.duration(expT).asHours() * i.cost * 100) / 100
             // console.log(cost)
             newEntry.costsPerInstrument.push({
               instrument: i.name,
@@ -50,7 +48,7 @@ exports.getCosts = async (req, res) => {
               expT,
               cost
             })
-            newEntry.totalCost += Number(cost)
+            newEntry.totalCost += cost
           })
           resData.push(newEntry)
         })
@@ -66,7 +64,7 @@ exports.getCosts = async (req, res) => {
       //to make sure that lists include users that have been moved to a different group
       const usrSet = new Set()
       expArray.forEach(exp => usrSet.add(exp.user.id.toString()))
-      const usrArray = sortNamesArray(Array.from(usrSet))
+      const usrArray = Array.from(usrSet)
 
       await Promise.all(
         usrArray.map(async usrId => {
@@ -83,15 +81,17 @@ exports.getCosts = async (req, res) => {
               exp => exp.instrument.name === i.name && exp.user.id.toString() === usrId
             )
             const expT = getExpTimeSum(filteredExpArray)
-            const cost = (moment.duration(expT).asHours() * i.cost).toFixed(2)
+            const cost = Math.round(moment.duration(expT).asHours() * i.cost * 100) / 100
             newEntry.costsPerInstrument.push({
               instrument: i.name,
               expCount: filteredExpArray.length,
               expT,
               cost
             })
-            newEntry.totalCost += Number(cost)
+            newEntry.totalCost += cost
           })
+
+          newEntry.totalCost = newEntry.totalCost
 
           resData.push(newEntry)
         })
@@ -115,13 +115,13 @@ exports.getCosts = async (req, res) => {
       const expTimeSumArr = []
       resData.forEach(row => {
         expCountSumArr.push(row.costsPerInstrument[colIndex].expCount)
-        costSumArr.push(+row.costsPerInstrument[colIndex].cost)
+        costSumArr.push(row.costsPerInstrument[colIndex].cost)
         expTimeSumArr.push(moment.duration(row.costsPerInstrument[colIndex].expT).asSeconds())
       })
       totalEntry.costsPerInstrument.push({
         instrument: col.instrument,
         expCount: expCountSumArr.reduce((a, b) => a + b, 0),
-        cost: costSumArr.reduce((a, b) => a + b, 0),
+        cost: Math.round(costSumArr.reduce((a, b) => a + b, 0) * 100) / 100,
         expT: moment
           .duration(
             expTimeSumArr.reduce((a, b) => a + b, 0),
@@ -131,7 +131,12 @@ exports.getCosts = async (req, res) => {
       })
     })
 
-    resData.forEach(row => (totalEntry.totalCost += row.totalCost))
+    resData.forEach(row => {
+      totalEntry.totalCost += row.totalCost
+      row.totalCost = Math.round(row.totalCost * 100) / 100
+    })
+    sortNames(resData)
+    totalEntry.totalCost = Math.round(totalEntry.totalCost * 100) / 100
 
     res.send([...resData, totalEntry])
   } catch (error) {
@@ -150,12 +155,12 @@ const getExpTimeSum = expArr => {
 }
 
 //Helper function to sort out alphabetically the first column with names
-const sortNamesArray = inputArray =>
+const sortNames = inputArray =>
   inputArray.sort((a, b) => {
-    if (a.username < b.username) {
+    if (a.name < b.name) {
       return -1
     }
-    if (a.username > b.username) {
+    if (a.name > b.name) {
       return 1
     }
     return 0
