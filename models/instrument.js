@@ -23,6 +23,10 @@ const instrumentSchema = new Schema({
     required: true,
     default: true
   },
+  cost: {
+    type: Number,
+    default: 0
+  },
 
   dayAllowance: Number,
   nightAllowance: Number,

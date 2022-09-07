@@ -41,13 +41,16 @@ const updateStatusFromHist = async (instrument, statusTable, historyTable) => {
           if (oldEntry) {
             if (oldEntry.status === 'Available') {
               updateObj.submittedAt = new Date()
-            } else if (oldEntry.status === 'Running' && entry.status === 'Completed') {
+            }
+            if (oldEntry.status === 'Running' && entry.status === 'Completed') {
               const { datasetName, expNo, group } = entry
               //sending message to client through socket to upload data
               if (process.env.DATASTORE_ON) {
                 sendUploadCmd(instrument._id.toString(), { datasetName, expNo, group })
               }
             }
+            if (oldEntry.status !== 'Running' && entry.status === 'Running')
+              updateObj.runningAt = new Date()
           }
 
           const expHistEntry = await Experiment.findOneAndUpdate({ expId }, updateObj)

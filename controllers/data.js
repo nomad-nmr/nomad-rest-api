@@ -2,6 +2,7 @@ const fs = require('fs/promises')
 const path = require('path')
 
 const JSZip = require('jszip')
+const moment = require('moment')
 
 const Experiment = require('../models/experiment')
 const getNMRium = require('convert-to-nmrium')
@@ -16,6 +17,13 @@ exports.postData = async (req, res) => {
     }
     experiment.dataPath = dataPath
     experiment.status = 'Archived'
+    const now = new moment()
+    experiment.totalExpTime = moment
+      .duration(now.diff(moment(experiment.runningAt)))
+      .format('HH:mm:ss', {
+        trim: false
+      })
+
     experiment.save()
 
     //converting to NMRium format file
